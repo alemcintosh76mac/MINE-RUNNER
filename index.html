@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mine Runner · ALXAR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --amber:#F59D12;        /* acento de marca */
+    --amber-soft:#ffbe4d;
+    --gray:#AAA095;          /* gris cálido de marca */
+    --gray-dim:#6b655d;
+    --rock:#241f1a;          /* roca oscura */
+    --rock-line:#3a322a;
+    --bg:#0b0a0c;
+    --bg-2:#141014;
+    --copper:#e08a2c;
+    --danger:#d94a3d;
+    --ok:#7bd88f;
+    --scan: rgba(245,157,18,.035);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1c1712 0%, transparent 60%),
+      radial-gradient(900px 500px at 50% 120%, #171015 0%, transparent 55%),
+      var(--bg);
+    color:var(--gray);
+    font-family:'Rajdhani', system-ui, sans-serif;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100%;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* barrido CRT sutil */
+  body::after{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:50;
+    background:repeating-linear-gradient(0deg, var(--scan) 0 2px, transparent 2px 4px);
+    mix-blend-mode:overlay; opacity:.3;
+  }
+  #wrap{
+    position:relative;
+    width:min(96vw, 560px);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+
+  /* ---------- Encabezado / HUD ---------- */
+  header{
+    width:100%; display:flex; align-items:center; justify-content:space-between;
+    gap:8px; padding:2px 4px;
+  }
+  .brand{display:flex; align-items:baseline; gap:8px}
+  .brand .arc{
+    width:56px; height:16px; position:relative; align-self:center;
+  }
+  .brand h1{
+    font-family:'Rajdhani', system-ui, sans-serif;
+    font-size:22px; font-weight:700; letter-spacing:3px; color:var(--gray);
+    text-shadow:0 0 1px #000;
+  }
+  .brand h1 b{color:var(--amber); font-weight:400}
+  .tag{font-size:15px; color:var(--gray-dim); letter-spacing:1px}
+
+  #hud{
+    width:100%;
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:8px; align-items:center;
+    font-family:'Rajdhani', system-ui, sans-serif;
+    font-size:14px; font-weight:600; line-height:1.5;
+    padding:8px 10px;
+    border:2px solid var(--rock-line);
+    background:linear-gradient(180deg, rgba(245,157,18,.05), transparent);
+  }
+  #hud .lab{color:var(--gray-dim); font-size:11px; font-weight:600; display:block; margin-bottom:4px}
+  #hud .val{color:var(--amber)}
+  #hud .mid{text-align:center}
+  #hud .right{text-align:right}
+  .lives{display:flex; gap:5px; justify-content:flex-start; margin-top:2px}
+  .lives i{
+    width:11px; height:11px; border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 6px rgba(245,157,18,.8);
+    /* muesca de "boca" del minero */
+    clip-path:polygon(100% 0, 45% 50%, 100% 100%, 0 100%, 0 0);
+  }
+
+  /* ---------- Escenario ---------- */
+  #stage{
+    position:relative; width:100%;
+    border:2px solid var(--rock-line);
+    background:
+      radial-gradient(120% 90% at 50% 0%, #17110c 0%, #0a0708 70%);
+    box-shadow:inset 0 0 60px rgba(0,0,0,.9);
+  }
+  canvas{display:block; width:100%; height:auto; image-rendering:pixelated}
+
+  /* niebla/atmósfera bajo tierra */
+  .fog{position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(70% 55% at 50% 55%, transparent 55%, rgba(0,0,0,.32) 100%);}
+
+  /* ---------- Overlays ---------- */
+  .screen{
+    position:absolute; inset:0; z-index:20;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    text-align:center; gap:9px; padding:16px 20px; overflow-y:auto;
+    background:linear-gradient(180deg, rgba(8,6,7,.94), rgba(8,6,7,.97));
+  }
+  .screen.hidden{display:none}
+  .hidden{display:none}
+  .logo{display:flex; flex-direction:column; align-items:center; gap:2px; margin-bottom:2px}
+  .logo svg{width:150px; height:auto; filter:drop-shadow(0 0 10px rgba(245,157,18,.25))}
+  .wordmark{
+    font-family:'Rajdhani', system-ui, sans-serif; font-weight:700;
+    font-size:40px; letter-spacing:10px; color:var(--amber);
+    text-indent:10px; line-height:1; margin-bottom:0;
+    text-shadow:0 0 18px rgba(245,157,18,.35);
+  }
+  .title{
+    font-family:'Rajdhani', system-ui, sans-serif; color:var(--amber); font-weight:700;
+    font-size:25px; letter-spacing:3px; line-height:1.1;
+    text-shadow:0 0 16px rgba(245,157,18,.45);
+  }
+  .title .sub{display:block; color:var(--gray); font-weight:600; font-size:12px; letter-spacing:3px; margin-top:5px; text-shadow:none}
+  .blurb{max-width:410px; font-size:15px; color:var(--gray); line-height:1.3}
+  .rules{
+    width:100%; max-width:400px; text-align:left;
+    display:flex; flex-direction:column; gap:6px;
+    font-size:14px; color:var(--gray);
+    border-top:1px solid var(--rock-line); border-bottom:1px solid var(--rock-line);
+    padding:9px 4px;
+  }
+  .rules .row{display:flex; align-items:center; gap:12px}
+  .glyph{width:20px; height:20px; flex:0 0 20px; display:inline-block}
+  .rules b{color:var(--amber-soft); font-weight:400}
+  .keys{display:flex; gap:6px; align-items:center; font-size:15px; color:var(--gray-dim)}
+  .key{
+    font-family:'Rajdhani', system-ui, sans-serif; font-size:13px; font-weight:600;
+    color:var(--gray); border:1px solid var(--gray-dim);
+    padding:5px 6px; border-radius:3px; background:#141014;
+  }
+  .btn{
+    font-family:'Rajdhani', system-ui, sans-serif; font-size:16px; font-weight:700; letter-spacing:1px;
+    color:#1a1206; background:var(--amber);
+    border:none; padding:14px 22px; cursor:pointer;
+    box-shadow:0 4px 0 #935e07, 0 0 20px rgba(245,157,18,.35);
+    transition:transform .05s, box-shadow .05s; border-radius:2px;
+  }
+  .btn:hover{background:var(--amber-soft)}
+  .btn:active{transform:translateY(3px); box-shadow:0 1px 0 #935e07}
+  .btn.ghost{
+    background:transparent; color:var(--gray); box-shadow:none;
+    border:1px solid var(--gray-dim); font-size:10px; padding:11px 16px;
+  }
+  .btn.ghost:hover{border-color:var(--amber); color:var(--amber)}
+  .blink{animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:.25}}
+
+  .bigscore{font-family:'Rajdhani', system-ui, sans-serif; color:var(--amber); font-size:30px;
+    text-shadow:0 0 16px rgba(245,157,18,.5)}
+  .scoreline{font-size:20px; color:var(--gray)}
+  .scoreline b{color:var(--amber-soft); font-weight:400}
+  .attempts{
+    font-family:'Rajdhani', system-ui, sans-serif; font-size:13px; font-weight:600; color:var(--gray-dim);
+    letter-spacing:1px;
+  }
+  .attempts b{color:var(--amber)}
+  .verdict{font-family:'Rajdhani', system-ui, sans-serif; font-size:20px; font-weight:700; letter-spacing:1px}
+  .verdict.win{color:var(--ok)} .verdict.lose{color:var(--danger)}
+  .newbest{font-size:17px; color:var(--amber); letter-spacing:1px}
+  .sent{font-size:16px; color:var(--ok); max-width:380px; line-height:1.35}
+  #sendHint{color:var(--gray)}
+  .sendbox{display:flex; flex-direction:column; align-items:center; gap:11px;
+    border:1px solid var(--rock-line); padding:14px 16px; max-width:410px;
+    background:linear-gradient(180deg, rgba(245,157,18,.04), transparent)}
+  .sendrow{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+  .addr{font-size:16px; color:var(--gray-dim)} .addr b{color:var(--amber-soft); font-weight:600}
+
+  /* Campo de nombre — destacado como primer paso */
+  .namefield{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    width:100%; max-width:300px;
+    padding:10px 14px 12px;
+    border:2px solid var(--amber);
+    border-radius:6px;
+    background:linear-gradient(180deg, rgba(245,157,18,.12), rgba(245,157,18,.03));
+    box-shadow:0 0 22px rgba(245,157,18,.22), inset 0 0 20px rgba(245,157,18,.05);
+    animation:namepulse 1.8s ease-in-out infinite;
+  }
+  @keyframes namepulse{
+    0%,100%{box-shadow:0 0 18px rgba(245,157,18,.18), inset 0 0 20px rgba(245,157,18,.05)}
+    50%{box-shadow:0 0 30px rgba(245,157,18,.38), inset 0 0 20px rgba(245,157,18,.08)}
+  }
+  .namefield label{
+    font-family:'Rajdhani',system-ui,sans-serif; font-weight:700;
+    font-size:14px; color:var(--amber); letter-spacing:1.5px; text-transform:uppercase;
+  }
+  .namefield label::before{content:"▸ "; color:var(--amber-soft)}
+  .namefield input{
+    font-family:'Rajdhani',system-ui,sans-serif; font-size:19px; font-weight:700;
+    text-align:center; color:#fff2d6; background:#0e0b0e;
+    border:2px solid var(--gray-dim); border-radius:4px; padding:9px 12px; width:100%;
+    outline:none; letter-spacing:1.5px;
+  }
+  .namefield input:focus{border-color:var(--amber); box-shadow:0 0 12px rgba(245,157,18,.35)}
+  .namefield input::placeholder{color:#6b645c; font-weight:500; letter-spacing:1px}
+  .btn:disabled{opacity:.4; cursor:not-allowed; box-shadow:none}
+
+  /* Ranking */
+  .ranking-wrap{width:100%; max-width:360px; display:flex; flex-direction:column; gap:8px}
+  .rk-title{font-family:'Rajdhani',system-ui,sans-serif; font-weight:700; letter-spacing:3px;
+    font-size:15px; color:var(--gray)}
+  .ranking{display:flex; flex-direction:column; gap:3px}
+  .rk-row{display:grid; grid-template-columns:32px 1fr auto; align-items:center; gap:10px;
+    padding:7px 11px; border:1px solid var(--rock-line); font-size:17px; color:var(--gray)}
+  .rk-row .rk-pos{color:var(--gray-dim); font-weight:700; text-align:center}
+  .rk-row .rk-name{text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .rk-row .rk-score{color:var(--amber); font-weight:700; font-variant-numeric:tabular-nums}
+  .rk-row.me{border-color:var(--amber); background:rgba(245,157,18,.10)}
+  .rk-row.top .rk-pos{color:var(--amber)}
+  .rk-empty{font-size:15px; color:var(--gray-dim)}
+  .rk-note{font-size:14px; color:var(--gray-dim); line-height:1.3; max-width:340px}
+
+  /* botón sonido */
+  #sound{
+    position:absolute; top:8px; right:8px; z-index:30;
+    background:rgba(20,16,20,.7); border:1px solid var(--rock-line);
+    color:var(--gray); font-family:'Rajdhani',system-ui,sans-serif; font-size:11px; font-weight:600;
+    padding:7px 8px; cursor:pointer; border-radius:3px;
+  }
+  #sound:hover{border-color:var(--amber); color:var(--amber)}
+
+  footer{font-size:14px; color:var(--gray-dim); letter-spacing:1px; text-align:center}
+
+  @media (max-width:420px){
+    .title{font-size:17px}
+    .brand h1{font-size:13px}
+    #hud{font-size:9px}
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+
+  <header>
+    <div class="brand">
+      <h1>ALXAR</h1>
+    </div>
+    <span class="tag">MINE&nbsp;RUNNER</span>
+  </header>
+
+  <div id="hud">
+    <div class="left">
+      <span class="lab">PUNTAJE</span>
+      <span class="val" id="score">0</span>
+      <div class="lives" id="lives"></div>
+    </div>
+    <div class="mid">
+      <span class="lab">MEJOR</span>
+      <span class="val" id="best">0</span>
+    </div>
+    <div class="right">
+      <span class="lab">INTENTO</span>
+      <span class="val" id="attempt">1 / 3</span>
+    </div>
+  </div>
+
+  <div id="stage">
+    <button id="sound" aria-label="Silenciar sonido">♪ ON</button>
+    <canvas id="game" width="532" height="588"></canvas>
+    <div class="fog"></div>
+
+    <!-- PANTALLA DE INICIO -->
+    <div class="screen" id="startScreen">
+      <div class="wordmark">ALXAR</div>
+      <div class="title">MINE&nbsp;RUNNER<span class="sub">EXTRACCIÓN SUBTERRÁNEA</span></div>
+      <p class="blurb">Eres un minero atrapado en las galerías de cobre. Recolecta toda la roca antes de que los peligros de la mina te alcancen.</p>
+
+      <div class="rules">
+        <div class="row">
+          <svg class="glyph" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.5" fill="#e08a2c"/></svg>
+          <span><b>Roca de cobre</b> — recoge todas para ganar. +10</span>
+        </div>
+        <div class="row">
+          <svg class="glyph" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6.5" fill="#ffcf3f"/><circle cx="10" cy="10" r="6.5" fill="none" stroke="#fff5cc" stroke-width="1"/></svg>
+          <span><b>Pepita de oro</b> — activa Extracción Máxima: neutraliza peligros. +50</span>
+        </div>
+        <div class="row">
+          <svg class="glyph" viewBox="0 0 20 20"><path d="M10 3 L16 8 L10 17 L4 8 Z" fill="#57c7e8"/></svg>
+          <span><b>Diamante</b> — aparece a ratos. Puntos extra.</span>
+        </div>
+        <div class="row">
+          <svg class="glyph" viewBox="0 0 20 20"><path d="M3 15 L5 7 L10 4 L16 8 L17 14 L12 17 L6 17 Z" fill="#AAA095" stroke="#6f675d" stroke-width="1"/></svg>
+          <span><b>Peligros:</b> Roca Viviente, Robot de Perforación, Carro Explosivo y Nube de Gas. Esquívalos.</span>
+        </div>
+      </div>
+
+      <p class="attempts">Tienes <b>3 intentos</b> para lograr tu mejor puntaje</p>
+
+      <div class="namefield">
+        <label for="playerName">Identifícate para jugar</label>
+        <input id="playerName" type="text" maxlength="14" placeholder="Escribe tu nombre" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="btn" id="startBtn" disabled>EMPEZAR ▸</button>
+    </div>
+
+    <!-- PANTALLA FIN DE INTENTO -->
+    <div class="screen hidden" id="overScreen">
+      <div class="verdict" id="verdict">FIN DEL INTENTO</div>
+      <div class="scoreline">Puntaje de este intento</div>
+      <div class="bigscore" id="finalScore">0</div>
+      <div class="newbest hidden" id="newBest">¡NUEVO MEJOR PUNTAJE!</div>
+      <div class="scoreline">Mejor puntaje: <b id="bestOver">0</b></div>
+      <p class="attempts" id="attemptsLeft">Te quedan <b>2</b> intentos</p>
+      <button class="btn" id="retryBtn">SIGUIENTE INTENTO ▸</button>
+    </div>
+
+    <!-- PANTALLA FINAL (3 intentos usados) -->
+    <div class="screen hidden" id="finalScreen">
+      <div class="wordmark">ALXAR</div>
+      <div class="verdict win">OPERACIÓN COMPLETADA</div>
+      <p class="scoreline">Usaste tus 3 intentos. Tu mejor extracción fue:</p>
+      <div class="bigscore" id="grandBest">0</div>
+      <p class="blurb" id="rank">Buen trabajo, minero.</p>
+
+      <div class="ranking-wrap">
+        <div class="rk-title">MEJORES PUNTAJES</div>
+        <div id="ranking" class="ranking"></div>
+        <p class="rk-note hidden" id="rankNote"></p>
+      </div>
+
+      <button class="btn" id="sendBtn">ENVIAR MI MEJOR SCORE ▸</button>
+      <div class="sendbox hidden" id="sendBox">
+        <p class="sent" id="sendHint">Si no se abrió tu correo, usa una de estas opciones:</p>
+        <div class="sendrow">
+          <button class="btn ghost" id="gmailBtn">Abrir en Gmail</button>
+          <button class="btn ghost" id="copyBtn">Copiar mensaje</button>
+        </div>
+        <p class="addr">Para: <b>alejandra@mcintosh.cl</b></p>
+        <p class="sent hidden" id="copyOk">¡Mensaje copiado! Pégalo en tu correo y envíalo.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>ALXAR · Minería &nbsp;—&nbsp; usa las flechas · P pausa · M silencia</footer>
+</div>
+
+<script>
+/* ============================================================
+   MINE RUNNER — arcade estilo Pac-Man para ALXAR
+   Un solo nivel pulido · 3 vidas por intento · 3 intentos totales
+   ============================================================ */
+(function(){
+  "use strict";
+
+  // -------- Config del laberinto (mitad izquierda, se espeja) --------
+  // '#' pared · '.' pasillo · col índice 9 = centro
+  const SEGS = [
+    "##########",
+    "#........#",
+    "#.##.###.#",
+    "#.........",
+    "#.##.#.###",
+    "#....#...#",
+    "####.###.#",
+    "#....#....",
+    "#.##.#.###",
+    "#.#.......",
+    "...#.##...",
+    "#.#.......",
+    "#.##.#.###",
+    "#....#....",
+    "####.###.#",
+    "#....#...#",
+    "#.##.#.###",
+    "#.........",
+    "#.##.###.#",
+    "#........#",
+    "##########"
+  ];
+  const ROWS = SEGS.length;          // 21
+  const COLS = 19;                   // 10 + 9 espejado
+  const TILE = 28;
+  const TUNNEL_ROW = 10;             // fila con salida a los túneles laterales
+
+  // Construir grilla completa espejando
+  const grid = [];
+  for(let r=0;r<ROWS;r++){
+    const seg = SEGS[r];
+    let full = seg;
+    for(let c=8;c>=0;c--) full += seg[c];   // espejo de cols 0..8 -> 18..10
+    grid.push(full.split(""));
+  }
+  const isWall = (c,r)=> {
+    if(r<0||r>=ROWS) return true;
+    if(c<0||c>=COLS){ return r!==TUNNEL_ROW; } // túnel solo en su fila
+    return grid[r][c]==="#";
+  };
+
+  // -------- Canvas --------
+  const canvas = document.getElementById("game");
+  canvas.width = COLS*TILE; canvas.height = ROWS*TILE;
+  const ctx = canvas.getContext("2d");
+
+  // -------- Utilidades de grilla --------
+  const cx = c => c*TILE + TILE/2;
+  const cy = r => r*TILE + TILE/2;
+  function nearestPath(c,r){
+    if(!isWall(c,r)) return {c,r};
+    for(let rad=1;rad<12;rad++){
+      for(let dr=-rad;dr<=rad;dr++)for(let dc=-rad;dc<=rad;dc++){
+        const nc=c+dc,nr=r+dr;
+        if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&!isWall(nc,nr)) return {c:nc,r:nr};
+      }
+    }
+    return {c:1,r:1};
+  }
+  function floodReachable(sc,sr){
+    const seen = Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    const q=[[sc,sr]]; seen[sr][sc]=true;
+    const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    while(q.length){
+      const [c,r]=q.pop();
+      for(const [dc,dr] of dirs){
+        let nc=c+dc, nr=r+dr;
+        // envolver túnel
+        if(nr===TUNNEL_ROW){ if(nc<0)nc=COLS-1; if(nc>=COLS)nc=0; }
+        if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
+        if(!seen[nr][nc] && !isWall(nc,nr)){ seen[nr][nc]=true; q.push([nc,nr]); }
+      }
+    }
+    return seen;
+  }
+
+  // -------- Spawns --------
+  const PLAYER_SPAWN = nearestPath(9,17);
+  const GHOST_SPAWN  = nearestPath(9,10);
+  const reachable = floodReachable(PLAYER_SPAWN.c, PLAYER_SPAWN.r);
+
+  // Pepitas de oro: 4 celdas alcanzables cercanas a las esquinas
+  function pickCorner(tc,tr){
+    let best=null, bd=1e9;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(reachable[r][c]){
+        const d=(c-tc)**2+(r-tr)**2;
+        if(d<bd){bd=d;best={c,r};}
+      }
+    }
+    return best;
+  }
+  const nuggetCells = [pickCorner(1,1),pickCorner(COLS-2,1),pickCorner(1,ROWS-2),pickCorner(COLS-2,ROWS-2)];
+  const nuggetKey = new Set(nuggetCells.map(n=>n.r+"_"+n.c));
+
+  // -------- Estado del juego --------
+  const MAX_ATTEMPTS = 3;
+  const START_LIVES  = 3;
+  let bestScore = 0;
+  let attempt   = 1;
+  let playerName = "";
+  let leaderboard = [];
+
+  /* ============================================================
+     RANKING COMPARTIDO (que todos vean el mismo ranking)
+     Pega aquí la URL de tu base de datos Firebase, por ejemplo:
+       "https://TU-PROYECTO-default-rtdb.firebaseio.com/ranking"
+     Déjala vacía ("") para usar ranking LOCAL (solo este equipo).
+     Instrucciones para obtenerla: ver el mensaje que acompaña este archivo.
+     ============================================================ */
+  const RANKING_URL = "";
+
+  let state = "start";          // start | play | dying | won | over | final
+  let score, lives, rocks, nuggetsLeft, frightTimer, ghostChain;
+  let player, ghosts, diamond, diamondTimer, modeTimer, chaseMode;
+  let frame = 0, deathTimer = 0, winTimer = 0, paused=false, readyTimer=0;
+
+  // -------- Sonido (WebAudio, sin archivos) --------
+  let actx=null, muted=false;
+  function ensureAudio(){
+    if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(actx && actx.state==="suspended") actx.resume();
+  }
+  function beep(freq,dur,type="square",vol=.06,slideTo){
+    if(muted||!actx) return;
+    const t=actx.currentTime;
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type=type; o.frequency.setValueAtTime(freq,t);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);
+    g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+dur);
+  }
+  const sfx = {
+    rock:()=>beep(520+((frame*40)%120),0.05,"square",0.03),
+    nugget:()=>{beep(300,0.12,"sawtooth",0.06,600);},
+    ghost:()=>beep(400,0.18,"square",0.07,1000),
+    diamond:()=>{beep(700,0.09,"triangle",0.06,1200);setTimeout(()=>beep(1000,0.12,"triangle",0.06,1500),90);},
+    death:()=>beep(400,0.6,"sawtooth",0.08,60),
+    win:()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.16,"square",0.06),i*130));},
+    start:()=>{[392,523,659].forEach((f,i)=>setTimeout(()=>beep(f,0.12,"square",0.06),i*90));}
+  };
+
+  // -------- Música de fondo (WebAudio, loop continuo) --------
+  let musicTimer=null, musicStep=0;
+  // melodía + bajo en La menor pentatónica: ambiente de faena subterránea
+  const MEL  = [440,0,523,587, 0,523,440,0, 392,0,440,523, 0,392,330,0];
+  const BASS = [110,0,0,0, 98,0,0,0, 87.31,0,0,0, 98,0,0,0];
+  function mtone(freq,dur,vol,type){
+    if(!actx) return;
+    const t=actx.currentTime;
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(vol,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+dur+0.03);
+  }
+  function musicTick(){
+    if(muted||!actx) return;
+    const m=MEL[musicStep], b=BASS[musicStep];
+    if(m) mtone(m,0.18,0.04,"triangle");
+    if(b) mtone(b,0.34,0.05,"sine");
+    musicStep=(musicStep+1)%MEL.length;
+  }
+  function startMusic(){ if(!actx||muted||musicTimer) return; musicStep=0; musicTimer=setInterval(musicTick,205); }
+  function stopMusic(){ if(musicTimer){ clearInterval(musicTimer); musicTimer=null; } }
+
+  // -------- Entidades --------
+  function mkEntity(cell,spd){
+    return { x:cx(cell.c), y:cy(cell.r), dx:0, dy:0, want:{x:0,y:0}, step:2, spd, moveAcc:0, spawn:cell };
+  }
+  // spd = fracción de píxeles/frame (1 = rápido, 0.3 = lento). El jugador va a 0.58.
+  const GHOST_TYPES = [
+    { name:"Roca Viviente", color:"#AAA095", spd:0.40, kind:"chase",  corner:{c:COLS-2,r:1} },
+    { name:"Robot",         color:"#F59D12", spd:0.38, kind:"ambush", corner:{c:1,r:1} },
+    { name:"Carro",         color:"#d94a3d", spd:0.46, kind:"fast",   corner:{c:COLS-2,r:ROWS-2} },
+    { name:"Gas",           color:"#7bd88f", spd:0.30, kind:"slow",   corner:{c:1,r:ROWS-2} },
+  ];
+
+  function atCenter(e){ return (e.x-TILE/2)%TILE===0 && (e.y-TILE/2)%TILE===0; }
+  function tileOf(e){ return { c:Math.round((e.x-TILE/2)/TILE), r:Math.round((e.y-TILE/2)/TILE) }; }
+  function canGo(c,r,dc,dr){
+    let nc=c+dc, nr=r+dr;
+    if(nr===TUNNEL_ROW){ if(nc<0)nc=COLS-1; if(nc>=COLS)nc=0; }
+    return !isWall(nc,nr);
+  }
+
+  // -------- Inicializar intento --------
+  function newAttempt(){
+    score=0; lives=START_LIVES;
+    setupLevel();
+    state="play"; paused=false;
+    updateHUD();
+  }
+  function setupLevel(){
+    // roca de cobre en toda celda alcanzable (menos pepitas y spawn jugador)
+    rocks = Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    let count=0;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(reachable[r][c] && !nuggetKey.has(r+"_"+c)){
+        if(c===PLAYER_SPAWN.c && r===PLAYER_SPAWN.r) continue;
+        rocks[r][c]=true; count++;
+      }
+    }
+    nuggetsLeft = nuggetCells.map(n=>({...n}));
+    rocksTotal = count;
+    rocksLeft = count;
+
+    player = mkEntity(PLAYER_SPAWN,0.58);
+    player.dx=-1; player.dy=0; player.want={x:-1,y:0}; player.mouth=0;
+
+    ghosts = GHOST_TYPES.map((t,i)=>{
+      const g = mkEntity(GHOST_SPAWN, t.spd);
+      g.type=t; g.color=t.color; g.baseSpd=t.spd;
+      g.frightened=false; g.eaten=false; g.release=120 + i*110; // salen de a uno, con calma
+      g.dx=0; g.dy=-1;
+      return g;
+    });
+    frightTimer=0; ghostChain=0;
+    diamond=null; diamondTimer=380;
+    modeTimer=0; chaseMode=false;      // empiezan dispersándose (más fácil al inicio)
+    frame=0; deathTimer=0; winTimer=0; readyTimer=95;
+  }
+  let rocksTotal=0, rocksLeft=0;
+
+  // -------- Movimiento del jugador --------
+  function updatePlayer(){
+    const p=player;
+    if(atCenter(p)){
+      const t=tileOf(p);
+      // aplicar dirección deseada si es válida
+      if((p.want.x||p.want.y) && canGo(t.c,t.r,p.want.x,p.want.y)){
+        p.dx=p.want.x; p.dy=p.want.y;
+      }
+      // si la dirección actual choca, detenerse
+      if(!canGo(t.c,t.r,p.dx,p.dy)){ p.dx=0; p.dy=0; }
+    }
+    p.moveAcc += p.spd;
+    if(p.moveAcc>=1){ p.moveAcc-=1; p.x+=p.dx*p.step; p.y+=p.dy*p.step; wrap(p); }
+    if(p.dx||p.dy) p.mouth=(p.mouth+0.15)%(Math.PI); else p.mouth=0.15;
+
+    // comer roca
+    const t=tileOf(p);
+    if(t.r>=0&&t.r<ROWS&&t.c>=0&&t.c<COLS){
+      if(rocks[t.r][t.c]){ rocks[t.r][t.c]=false; rocksLeft--; score+=10; sfx.rock(); }
+      // pepita de oro
+      for(let i=0;i<nuggetsLeft.length;i++){
+        const n=nuggetsLeft[i];
+        if(n.c===t.c && n.r===t.r){
+          nuggetsLeft.splice(i,1); score+=50; sfx.nugget();
+          frightTimer=7*60; ghostChain=0;
+          ghosts.forEach(g=>{ if(!g.eaten){ g.frightened=true; reverse(g); } });
+          break;
+        }
+      }
+      // diamante
+      if(diamond && diamond.c===t.c && diamond.r===t.r){
+        score+=diamond.value; sfx.diamond();
+        floatText(diamond.c,diamond.r,"+"+diamond.value,"#57c7e8");
+        diamond=null; diamondTimer=520;
+      }
+    }
+    if(rocksLeft<=0){ winLevel(); }
+    updateHUD();
+  }
+  function reverse(e){ e.dx=-e.dx; e.dy=-e.dy; }
+  function wrap(e){
+    const t=tileOf(e);
+    if(t.r===TUNNEL_ROW){
+      if(e.x< -TILE/2) e.x = canvas.width + TILE/2 - 1;
+      if(e.x> canvas.width + TILE/2) e.x = -TILE/2 + 1;
+    }
+  }
+
+  // -------- IA de peligros --------
+  function ghostTarget(g){
+    const pt=tileOf(player);
+    if(g.eaten) return GHOST_SPAWN;
+    if(!chaseMode) return g.type.corner;                       // dispersión
+    switch(g.type.kind){
+      case "chase":  return pt;                                // persigue directo
+      case "ambush": return { c:pt.c+player.dx*4, r:pt.r+player.dy*4 }; // adelanta 4
+      case "fast":   return pt;                                // rápido, directo
+      case "slow": {                                           // ronda por zonas
+        const d=Math.abs(pt.c-tileOf(g).c)+Math.abs(pt.r-tileOf(g).r);
+        return d>6 ? pt : g.type.corner;
+      }
+    }
+    return pt;
+  }
+  function updateGhost(g){
+    if(g.release>0){ g.release--; return; }
+    // velocidad efectiva (fracción de píxel por frame)
+    let spd = g.baseSpd;
+    if(g.frightened && !g.eaten) spd = 0.24;   // muy lento cuando huye: se puede atrapar
+    if(g.eaten) spd = 0.9;                      // regreso rápido a la base
+
+    if(atCenter(g)){
+      const t=tileOf(g);
+      if(g.eaten && t.c===GHOST_SPAWN.c && t.r===GHOST_SPAWN.r){
+        g.eaten=false; g.frightened=false; g.dy=-1; g.dx=0;
+      }
+      const tgt=ghostTarget(g);
+      const opts=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dc,dr])=>{
+        if(dc===-g.dx && dr===-g.dy) return false;   // no retroceder
+        return canGo(t.c,t.r,dc,dr);
+      });
+      let choice;
+      if(opts.length===0){ choice=[-g.dx,-g.dy]; }    // callejón: dar vuelta
+      else if(g.frightened && !g.eaten){ choice=opts[(Math.random()*opts.length)|0]; }
+      else{
+        let bd=1e9;
+        for(const [dc,dr] of opts){
+          let nc=t.c+dc, nr=t.r+dr;
+          if(nr===TUNNEL_ROW){ if(nc<0)nc=COLS-1; if(nc>=COLS)nc=0; }
+          const d=(nc-tgt.c)**2+(nr-tgt.r)**2;
+          if(d<bd){ bd=d; choice=[dc,dr]; }
+        }
+      }
+      g.dx=choice[0]; g.dy=choice[1];
+    }
+    g.moveAcc += spd;
+    if(g.moveAcc>=1){ g.moveAcc-=1; g.x+=g.dx*g.step; g.y+=g.dy*g.step; wrap(g); }
+
+    // colisión con jugador
+    if(Math.abs(g.x-player.x)<TILE*0.6 && Math.abs(g.y-player.y)<TILE*0.6){
+      if(g.frightened && !g.eaten){
+        g.eaten=true; g.frightened=false;
+        const pts=[200,400,800,1600][Math.min(ghostChain,3)]; ghostChain++;
+        score+=pts; sfx.ghost();
+        floatText(tileOf(g).c,tileOf(g).r,"+"+pts,"#ffcf3f");
+        updateHUD();
+      } else if(!g.eaten){
+        loseLife();
+      }
+    }
+  }
+
+  // -------- Textos flotantes --------
+  const floats=[];
+  function floatText(c,r,txt,color){ floats.push({x:cx(c),y:cy(r),txt,color,life:50}); }
+
+  // -------- Diamante --------
+  const DIAMONDS=[
+    {value:300,color:"#57c7e8",name:"diamante"},
+    {value:500,color:"#57e88f",name:"esmeralda"},
+    {value:800,color:"#e85770",name:"rubí"},
+    {value:1200,color:"#c9a0ff",name:"geoda"}
+  ];
+  function updateDiamond(){
+    if(diamond){ diamond.life--; if(diamond.life<=0){ diamond=null; diamondTimer=400; } return; }
+    diamondTimer--;
+    if(diamondTimer<=0){
+      // celda alcanzable libre al azar
+      const free=[];
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+        if(reachable[r][c] && !nuggetKey.has(r+"_"+c)) free.push({c,r});
+      }
+      const cell=free[(Math.random()*free.length)|0];
+      const d=DIAMONDS[(Math.random()*DIAMONDS.length)|0];
+      diamond={...cell, value:d.value, color:d.color, life:9*60, rot:0};
+    }
+  }
+
+  // -------- Vidas / fin --------
+  function loseLife(){
+    if(state!=="play") return;
+    lives--; sfx.death(); updateHUD();
+    state="dying"; deathTimer=70;
+  }
+  function respawn(){
+    player.x=cx(PLAYER_SPAWN.c); player.y=cy(PLAYER_SPAWN.r);
+    player.dx=-1; player.dy=0; player.want={x:-1,y:0}; player.moveAcc=0;
+    ghosts.forEach((g,i)=>{
+      g.x=cx(GHOST_SPAWN.c); g.y=cy(GHOST_SPAWN.r);
+      g.dx=0; g.dy=-1; g.frightened=false; g.eaten=false; g.release=90 + i*80; g.moveAcc=0;
+    });
+    frightTimer=0; diamond=null; readyTimer=95; chaseMode=false; modeTimer=0;
+    state="play";
+  }
+  function winLevel(){ if(state==="play"){ state="won"; winTimer=140; sfx.win(); } }
+
+  function endAttempt(){
+    if(score>bestScore){ bestScore=score; showNewBest=true; } else showNewBest=false;
+    if(attempt>=MAX_ATTEMPTS){ showFinal(); }
+    else { showOver(); }
+  }
+  let showNewBest=false;
+
+  // -------- Pantallas / DOM --------
+  const $=id=>document.getElementById(id);
+  function updateHUD(){
+    $("score").textContent=score??0;
+    $("best").textContent=bestScore;
+    $("attempt").textContent=attempt+" / "+MAX_ATTEMPTS;
+    const lv=$("lives"); lv.innerHTML="";
+    for(let i=0;i<(lives??0);i++){ const el=document.createElement("i"); lv.appendChild(el); }
+  }
+  function showScreen(id){
+    ["startScreen","overScreen","finalScreen"].forEach(s=>$(s).classList.add("hidden"));
+    if(id) $(id).classList.remove("hidden");
+  }
+  function showOver(){
+    state="over";
+    $("verdict").textContent = rocksLeft<=0 ? "¡GALERÍA DESPEJADA!" : "TE ALCANZÓ LA MINA";
+    $("verdict").className = "verdict " + (rocksLeft<=0?"win":"lose");
+    $("finalScore").textContent=score;
+    $("bestOver").textContent=bestScore;
+    $("newBest").classList.toggle("hidden", !showNewBest);
+    const left=MAX_ATTEMPTS-attempt;
+    $("attemptsLeft").innerHTML = left===1
+      ? "Te queda <b>1</b> intento" : "Te quedan <b>"+left+"</b> intentos";
+    $("retryBtn").textContent = "SIGUIENTE INTENTO ▸";
+    showScreen("overScreen"); updateHUD();
+  }
+  // -------- Ranking (guardado local en el dispositivo) --------
+  const LB_KEY = "mineRunnerAlxarRanking";
+  function loadLB(){
+    try{ const s=localStorage.getItem(LB_KEY); leaderboard = s ? JSON.parse(s) : []; }
+    catch(e){ /* sin almacenamiento: queda en memoria durante la sesión */ }
+    if(!Array.isArray(leaderboard)) leaderboard=[];
+  }
+  function saveLB(){
+    try{ localStorage.setItem(LB_KEY, JSON.stringify(leaderboard)); }catch(e){}
+  }
+  // ¿Hay ranking en línea configurado?
+  function cloudOn(){ return typeof RANKING_URL==="string" && /^https?:\/\//.test(RANKING_URL); }
+  async function cloudSubmit(entry){
+    const res = await fetch(RANKING_URL + ".json", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(entry)
+    });
+    if(!res.ok) throw new Error("submit "+res.status);
+  }
+  async function cloudFetch(){
+    const res = await fetch(RANKING_URL + ".json", {cache:"no-store"});
+    if(!res.ok) throw new Error("fetch "+res.status);
+    const data = await res.json();
+    if(!data) return [];
+    return Array.isArray(data) ? data : Object.values(data);
+  }
+  function showRankNote(t){ const n=$("rankNote"); if(n){ n.textContent=t; n.classList.remove("hidden"); } }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => (
+      {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]
+    ));
+  }
+  function renderRanking(list, mine){
+    const el = $("ranking");
+    el.innerHTML = "";
+    const arr = (list||[]).filter(e=>e && typeof e.score==="number")
+                          .sort((a,b)=> b.score - a.score).slice(0,7);
+    if(arr.length===0){
+      el.innerHTML = '<div class="rk-empty">Aún no hay puntajes registrados.</div>';
+      return;
+    }
+    arr.forEach((e,i)=>{
+      const isMe = mine && e.ts===mine.ts && e.name===mine.name;
+      const row = document.createElement("div");
+      row.className = "rk-row" + (i===0?" top":"") + (isMe?" me":"");
+      row.innerHTML =
+        '<span class="rk-pos">'+(i+1)+'</span>' +
+        '<span class="rk-name">'+escapeHtml(e.name)+'</span>' +
+        '<span class="rk-score">'+e.score+'</span>';
+      el.appendChild(row);
+    });
+  }
+
+  async function showFinal(){
+    state="final";
+    $("grandBest").textContent=bestScore;
+    let rank="Sigue practicando, minero.";
+    if(bestScore>=3000) rank="¡Extracción legendaria! Eres jefe de faena.";
+    else if(bestScore>=1500) rank="Gran faena. La mina es tuya.";
+    else if(bestScore>=600) rank="Buen trabajo bajo tierra.";
+    $("rank").textContent=rank;
+    $("sendBox").classList.add("hidden");
+    $("copyOk").classList.add("hidden");
+    $("rankNote").classList.add("hidden");
+    $("ranking").innerHTML = '<div class="rk-empty">Cargando ranking…</div>';
+    showScreen("finalScreen"); updateHUD();
+
+    const mine = { name:(playerName||"Anónimo"), score:bestScore, ts:Date.now() };
+    let list = [];
+    if(cloudOn()){
+      try{
+        await cloudSubmit(mine);
+        list = await cloudFetch();
+      }catch(err){
+        leaderboard.push(mine); saveLB(); list = leaderboard.slice();
+        showRankNote("No se pudo conectar al ranking en línea; se muestra el ranking de este equipo.");
+      }
+    } else {
+      leaderboard.push(mine); saveLB(); list = leaderboard.slice();
+    }
+    renderRanking(list, mine);
+  }
+
+  // -------- Dibujo --------
+  function drawWalls(){
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(grid[r][c]!=="#") continue;
+      const x=c*TILE, y=r*TILE;
+      // bloque de roca
+      ctx.fillStyle="#211b16";
+      roundRect(x+1,y+1,TILE-2,TILE-2,5); ctx.fill();
+      // veta ámbar (borde)
+      ctx.lineWidth=2; ctx.strokeStyle="rgba(245,157,18,0.16)";
+      roundRect(x+2.5,y+2.5,TILE-5,TILE-5,4); ctx.stroke();
+      // brillo interior
+      ctx.fillStyle="rgba(170,160,149,0.05)";
+      ctx.fillRect(x+5,y+5,TILE-10,3);
+    }
+  }
+  function drawRocks(){
+    ctx.save();
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(!rocks[r][c]) continue;
+      ctx.fillStyle="#e8933a";
+      ctx.beginPath(); ctx.arc(cx(c),cy(r),4.2,0,7); ctx.fill();
+      ctx.fillStyle="rgba(255,214,150,.8)";
+      ctx.beginPath(); ctx.arc(cx(c)-1.2,cy(r)-1.2,1.6,0,7); ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawNuggets(){
+    const pulse=0.5+0.5*Math.sin(frame*0.15);
+    nuggetsLeft.forEach(n=>{
+      const x=cx(n.c),y=cy(n.r), r=6.5+pulse*1.6;
+      ctx.save();
+      ctx.shadowColor="#ffcf3f"; ctx.shadowBlur=12+pulse*8;
+      ctx.fillStyle="#ffcf3f";
+      ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill();
+      ctx.fillStyle="#fff6cf";
+      ctx.beginPath(); ctx.arc(x-2,y-2,2,0,7); ctx.fill();
+      ctx.restore();
+    });
+  }
+  function drawDiamond(){
+    if(!diamond) return;
+    diamond.rot+=0.05;
+    const x=cx(diamond.c), y=cy(diamond.r);
+    const blink = diamond.life<120 && (frame%16<8);
+    if(blink) return;
+    ctx.save(); ctx.translate(x,y); ctx.rotate(Math.sin(diamond.rot)*0.25);
+    ctx.shadowColor=diamond.color; ctx.shadowBlur=14;
+    ctx.fillStyle=diamond.color;
+    ctx.beginPath();
+    ctx.moveTo(0,-9); ctx.lineTo(7,-1); ctx.lineTo(0,10); ctx.lineTo(-7,-1); ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle="rgba(255,255,255,.8)"; ctx.lineWidth=1; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-7,-1); ctx.lineTo(7,-1); ctx.moveTo(0,-9); ctx.lineTo(0,10); ctx.stroke();
+    ctx.restore();
+  }
+  function drawPlayer(){
+    const p=player;
+    // halo de linterna
+    const dir=Math.atan2(p.dy,p.dx);
+    const grd=ctx.createRadialGradient(p.x,p.y,2,p.x,p.y,42);
+    grd.addColorStop(0,"rgba(255,220,150,.28)");
+    grd.addColorStop(1,"rgba(255,220,150,0)");
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(p.x,p.y,42,0,7); ctx.fill();
+
+    const blinkDead = state==="dying" && (frame%8<4);
+    if(blinkDead) return;
+
+    ctx.save(); ctx.translate(p.x,p.y);
+    let ang = (p.dx||p.dy)? dir : 0;
+    ctx.rotate(ang);
+    const mouth = 0.05 + Math.abs(Math.sin(p.mouth))*0.32;
+    // cuerpo (cuña estilo Pac-Man) ámbar de marca
+    ctx.fillStyle="#F59D12";
+    ctx.shadowColor="rgba(245,157,18,.6)"; ctx.shadowBlur=10;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,11, mouth*Math.PI, (2-mouth)*Math.PI);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur=0;
+    // casco (arco superior, gris de marca)
+    ctx.rotate(-ang);
+    ctx.fillStyle="#d8cfc4";
+    ctx.beginPath(); ctx.arc(0,-2,11,Math.PI*1.08,Math.PI*1.92); ctx.closePath(); ctx.fill();
+    // linterna del casco
+    ctx.fillStyle="#fff2c4";
+    ctx.beginPath(); ctx.arc(0,-9,2.4,0,7); ctx.fill();
+    ctx.restore();
+  }
+  // ---- Peligros mineros (cada tipo se dibuja distinto) ----
+  function drawBoulder(g){                     // Roca Viviente
+    ctx.fillStyle="#AAA095"; ctx.strokeStyle="#6f675d"; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    [[-10,3],[-7,-7],[0,-10],[8,-6],[10,3],[5,10],[-5,10]].forEach((p,i)=> i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle="rgba(90,84,74,.9)"; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(-2,-8); ctx.lineTo(0,-2); ctx.lineTo(-4,3); ctx.stroke();
+    ctx.fillStyle="#F59D12"; ctx.shadowColor="#F59D12"; ctx.shadowBlur=6;
+    ctx.beginPath(); ctx.arc(-3,0,2.1,0,7); ctx.arc(4,-1,2.1,0,7); ctx.fill(); ctx.shadowBlur=0;
+    ctx.fillStyle="#2a1e08";
+    ctx.beginPath(); ctx.arc(-3,0,0.9,0,7); ctx.arc(4,-1,0.9,0,7); ctx.fill();
+  }
+  function drawDrillRobot(g,dir){              // Robot de Perforación
+    ctx.fillStyle="#2a2622"; ctx.fillRect(-10,6,20,4);          // orugas
+    ctx.fillStyle="#4a443c"; for(let i=-9;i<9;i+=3) ctx.fillRect(i,6,1.6,4);
+    ctx.fillStyle="#c9c1b6"; roundRect(-8,-8,16,14,3); ctx.fill();  // cuerpo
+    ctx.fillStyle="#F59D12"; roundRect(-6,-6,12,4.5,2); ctx.fill(); // panel ámbar
+    ctx.fillStyle="#141414"; ctx.fillRect(-5,0,10,3.5);            // visor
+    ctx.fillStyle="#57c7e8";
+    ctx.beginPath(); ctx.arc(-2,1.7,1.3,0,7); ctx.arc(2,1.7,1.3,0,7); ctx.fill();
+    ctx.strokeStyle="#8a8078"; ctx.lineWidth=1;                    // antena
+    ctx.beginPath(); ctx.moveTo(0,-8); ctx.lineTo(0,-12); ctx.stroke();
+    ctx.fillStyle="#d94a3d"; ctx.beginPath(); ctx.arc(0,-12.5,1.5,0,7); ctx.fill();
+    ctx.save(); ctx.rotate(dir);                                   // taladro apunta al avance
+    ctx.fillStyle="#8a8078";
+    ctx.beginPath(); ctx.moveTo(8,-4); ctx.lineTo(16,0); ctx.lineTo(8,4); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle="#5a544c"; ctx.lineWidth=1;
+    const off=(frame*0.5)%2;
+    for(let i=0;i<3;i++){ const dx=9+i*2.2; ctx.beginPath(); ctx.moveTo(dx,-3+((i+off)%2)); ctx.lineTo(dx,3-((i+off)%2)); ctx.stroke(); }
+    ctx.restore();
+  }
+  function drawCart(g){                         // Carro Explosivo
+    ctx.fillStyle="#2a2622";
+    ctx.beginPath(); ctx.arc(-6,9,3,0,7); ctx.arc(6,9,3,0,7); ctx.fill();   // ruedas
+    ctx.fillStyle="#666"; ctx.beginPath(); ctx.arc(-6,9,1,0,7); ctx.arc(6,9,1,0,7); ctx.fill();
+    ctx.fillStyle="#7a4038";                                                 // batea
+    ctx.beginPath(); ctx.moveTo(-10,0); ctx.lineTo(10,0); ctx.lineTo(7,7); ctx.lineTo(-7,7); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle="#3a1f1b"; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle="#9a5048"; ctx.fillRect(-10,-1.5,20,2.5);                   // borde
+    ctx.fillStyle="#d94a3d"; ctx.fillRect(-4,-8,8,7);                         // dinamita
+    ctx.fillStyle="#b03a30"; ctx.fillRect(-3.6,-8,2.4,7); ctx.fillRect(1.2,-8,2.4,7);
+    ctx.strokeStyle="#3a2a10"; ctx.lineWidth=1;                               // mecha
+    ctx.beginPath(); ctx.moveTo(0,-8); ctx.quadraticCurveTo(3,-12,1,-14); ctx.stroke();
+    const s=1+Math.sin(frame*0.5)*0.4;                                        // chispa
+    ctx.fillStyle="#ffcf3f"; ctx.shadowColor="#ff8c00"; ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.arc(1,-14,2*s,0,7); ctx.fill(); ctx.shadowBlur=0;
+  }
+  function drawGas(g){                          // Nube de Gas
+    const w=Math.sin(frame*0.12)*1.5;
+    ctx.fillStyle="rgba(123,216,143,.55)"; ctx.shadowColor="#7bd88f"; ctx.shadowBlur=10;
+    [[-5,0,7],[4,-1,6.5],[0,4,6],[-2,-4,5],[6,3,4.5]].forEach(([bx,by,br],i)=>{
+      ctx.beginPath(); ctx.arc(bx+w*(i%2?1:-1),by,br,0,7); ctx.fill();
+    });
+    ctx.shadowBlur=0;
+    ctx.fillStyle="rgba(210,255,210,.7)";
+    ctx.beginPath(); ctx.arc(-3+w,-2,1.3,0,7); ctx.arc(4,3,1,0,7); ctx.fill();
+    ctx.fillStyle="rgba(28,60,28,.85)";
+    ctx.beginPath(); ctx.arc(-3,-1,1.4,0,7); ctx.arc(3,-1,1.4,0,7); ctx.fill();
+  }
+  function drawScared(flash){                   // estado seguro (tras pepita de oro)
+    const col = flash ? "#dfe6ff" : "#3a6fd8";
+    ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=8;
+    ctx.beginPath();
+    [[-9,3],[-6,-6],[1,-9],[8,-5],[9,4],[4,9],[-4,9]].forEach((p,i)=> i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    ctx.closePath(); ctx.fill(); ctx.shadowBlur=0;
+    ctx.fillStyle="#fff";
+    ctx.beginPath(); ctx.arc(-3,-1,1.7,0,7); ctx.arc(3,-1,1.7,0,7); ctx.fill();
+    ctx.strokeStyle=flash?"#d94a3d":"#bcd0ff"; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(-4,4);
+    for(let i=1;i<=4;i++){ ctx.lineTo(-4+i*2, 4+(i%2?-1.6:1.6)); }
+    ctx.stroke();
+  }
+  function drawRubble(){                         // escombros volviendo a la base
+    ctx.fillStyle="rgba(120,112,102,.6)";
+    [[-6,3],[-1,-2],[4,2],[6,-2]].forEach(([rx,ry])=>{ ctx.beginPath(); ctx.arc(rx,ry,2,0,7); ctx.fill(); });
+  }
+
+  function drawGhosts(){
+    ghosts.forEach(g=>{
+      if(g.release>0) return;
+      ctx.save(); ctx.translate(g.x,g.y);
+      if(g.eaten){ drawRubble(); ctx.restore(); return; }
+      if(g.frightened){ drawScared(frightTimer<120 && frame%16<8); ctx.restore(); return; }
+      const dir=Math.atan2(g.dy,g.dx);
+      switch(g.type.kind){
+        case "chase":  drawBoulder(g); break;
+        case "ambush": drawDrillRobot(g,dir); break;
+        case "fast":   drawCart(g); break;
+        case "slow":   drawGas(g); break;
+      }
+      ctx.restore();
+    });
+  }
+  function drawFloats(){
+    for(let i=floats.length-1;i>=0;i--){
+      const f=floats[i]; f.y-=0.6; f.life--;
+      ctx.globalAlpha=Math.max(0,f.life/50);
+      ctx.fillStyle=f.color; ctx.font="700 15px 'Rajdhani',system-ui,sans-serif"; ctx.textAlign="center";
+      ctx.fillText(f.txt,f.x,f.y);
+      ctx.globalAlpha=1;
+      if(f.life<=0) floats.splice(i,1);
+    }
+  }
+  function drawCenterMsg(txt,color){
+    ctx.save();
+    ctx.fillStyle="rgba(8,6,7,.55)"; ctx.fillRect(0,canvas.height/2-34,canvas.width,68);
+    ctx.fillStyle=color; ctx.font="700 20px 'Rajdhani',system-ui,sans-serif"; ctx.textAlign="center";
+    ctx.fillText(txt,canvas.width/2,canvas.height/2+6);
+    ctx.restore();
+  }
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function render(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawWalls();
+    drawRocks();
+    drawNuggets();
+    drawDiamond();
+    drawGhosts();
+    drawPlayer();
+    drawFloats();
+    if(frightTimer>0 && state==="play"){
+      ctx.fillStyle="rgba(58,111,216,.9)"; ctx.font="600 15px 'Rajdhani',system-ui,sans-serif"; ctx.textAlign="left";
+      ctx.fillText("EXTRACCIÓN MÁXIMA "+Math.ceil(frightTimer/60)+"s", 8, canvas.height-8);
+    }
+    if(state==="play" && readyTimer>0 && !paused) drawCenterMsg("¡LISTO!","#F59D12");
+    if(paused && state==="play") drawCenterMsg("PAUSA","#F59D12");
+    if(state==="won") drawCenterMsg("¡GALERÍA DESPEJADA!","#7bd88f");
+    if(state==="dying" && deathTimer<40) drawCenterMsg("¡CUIDADO!","#d94a3d");
+  }
+
+  // -------- Bucle principal --------
+  function tick(){
+    if(state==="play" && !paused){
+      frame++;
+      if(readyTimer>0){
+        readyTimer--;                 // congelado: el jugador alcanza a ubicarse
+      } else {
+        if(frightTimer>0){ frightTimer--; if(frightTimer===0) ghosts.forEach(g=>g.frightened=false); }
+        // alternar persecución / dispersión (arranca disperso 7s, luego persigue 18s)
+        modeTimer++;
+        if(chaseMode && modeTimer>60*18){ chaseMode=false; modeTimer=0; ghosts.forEach(reverse); }
+        else if(!chaseMode && modeTimer>60*7){ chaseMode=true; modeTimer=0; ghosts.forEach(reverse); }
+        updatePlayer();
+        updateDiamond();
+        ghosts.forEach(updateGhost);
+      }
+    } else if(state==="dying"){
+      frame++;
+      deathTimer--;
+      if(deathTimer<=0){
+        if(lives>0){ respawn(); }
+        else { endAttempt(); }
+      }
+    } else if(state==="won"){
+      frame++; winTimer--;
+      if(winTimer<=0) endAttempt();
+    }
+    render();
+    requestAnimationFrame(tick);
+  }
+
+  // -------- Controles --------
+  const DIRS={
+    "arrowup":[0,-1],"w":[0,-1], "arrowdown":[0,1],"s":[0,1],
+    "arrowleft":[-1,0],"a":[-1,0], "arrowright":[1,0],"d":[1,0]
+  };
+  window.addEventListener("keydown",e=>{
+    const k=e.key.toLowerCase();
+    // si el foco está en el campo de nombre, solo Enter inicia; el resto es escritura normal
+    if(e.target && e.target.tagName==="INPUT"){
+      if(k==="enter"){ e.preventDefault(); startGame(); }
+      return;
+    }
+    if(DIRS[k]){ e.preventDefault(); player.want={x:DIRS[k][0],y:DIRS[k][1]}; }
+    if(k==="p" && (state==="play")) paused=!paused;
+    if(k==="m") toggleSound();
+    if(k===" "||k==="enter"){
+      if(state==="start"){ e.preventDefault(); startGame(); }
+      else if(state==="over"){ nextAttempt(); }
+    }
+  },{passive:false});
+
+  // -------- Botones --------
+  function startGame(){
+    const nm = (($("playerName").value)||"").trim().slice(0,14);
+    if(!nm){ $("playerName").focus(); return; }
+    playerName = nm;
+    ensureAudio(); startMusic(); sfx.start();
+    showScreen(null); attempt=1; newAttempt();
+  }
+  function nextAttempt(){ attempt++; showScreen(null); newAttempt(); }
+  $("startBtn").addEventListener("click",startGame);
+  $("playerName").addEventListener("input",()=>{
+    $("startBtn").disabled = !$("playerName").value.trim();
+  });
+  $("retryBtn").addEventListener("click",nextAttempt);
+
+  // Enviar el mejor puntaje por correo — con alternativas por si no hay app de correo
+  const SCORE_EMAIL = "alejandra@mcintosh.cl";
+  function emailParts(){
+    return {
+      to: SCORE_EMAIL,
+      subject: "Mi mejor score en Mine Runner (ALXAR)",
+      body: "¡Hola!\n\nMi nombre es " + (playerName||"Anónimo") +
+            " y mi mejor puntaje en Mine Runner de ALXAR fue " + bestScore +
+            " puntos (" + MAX_ATTEMPTS + " intentos jugados).\n\nEnviado desde el juego."
+    };
+  }
+  $("sendBtn").addEventListener("click",()=>{
+    const p=emailParts();
+    // intenta abrir la app de correo predeterminada
+    window.location.href = "mailto:" + p.to +
+      "?subject=" + encodeURIComponent(p.subject) +
+      "&body=" + encodeURIComponent(p.body);
+    // muestra siempre las alternativas (Gmail / copiar) por si no se abrió
+    $("sendBox").classList.remove("hidden");
+  });
+  $("gmailBtn").addEventListener("click",()=>{
+    const p=emailParts();
+    const u = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(p.to) +
+      "&su=" + encodeURIComponent(p.subject) + "&body=" + encodeURIComponent(p.body);
+    window.open(u, "_blank", "noopener");
+  });
+  $("copyBtn").addEventListener("click",async ()=>{
+    const p=emailParts();
+    const text = "Para: " + p.to + "\nAsunto: " + p.subject + "\n\n" + p.body;
+    try{
+      await navigator.clipboard.writeText(text);
+    }catch(e){
+      const ta=document.createElement("textarea");
+      ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try{ document.execCommand("copy"); }catch(_){}
+      document.body.removeChild(ta);
+    }
+    $("copyOk").classList.remove("hidden");
+  });
+
+  function toggleSound(){
+    muted=!muted; ensureAudio();
+    if(muted) stopMusic(); else startMusic();
+    $("sound").textContent = muted ? "♪ OFF" : "♪ ON";
+    $("sound").style.color = muted ? "var(--gray-dim)" : "var(--gray)";
+  }
+  $("sound").addEventListener("click",toggleSound);
+
+  // -------- Arranque --------
+  loadLB();
+  // dummy para que render no falle antes de setup
+  setupLevel(); state="start"; paused=false;
+  updateHUD();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
