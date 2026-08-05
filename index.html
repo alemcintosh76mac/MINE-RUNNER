@@ -477,6 +477,7 @@
 
   let state = "start";          // start | play | dying | won | over | final
   let score, lives, rocks, nuggetsLeft, frightTimer, ghostChain;
+  let rocksTotal=0, rocksLeft=0, level=1, ghostBoost=0;
   let player, ghosts, diamonds, diamondTimer, modeTimer, chaseMode;
   let frame = 0, deathTimer = 0, winTimer = 0, paused=false, readyTimer=0;
 
@@ -558,8 +559,8 @@
     state="play"; paused=false;
     updateHUD();
   }
-  function setupLevel(){
-    // roca de cobre en toda celda alcanzable (menos pepitas y spawn jugador)
+  function fillBoard(){
+    // cristales en toda celda alcanzable (menos gemas de poder y spawn del jugador)
     rocks = Array.from({length:ROWS},()=>Array(COLS).fill(false));
     let count=0;
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
@@ -571,6 +572,10 @@
     nuggetsLeft = nuggetCells.map(n=>({...n}));
     rocksTotal = count;
     rocksLeft = count;
+  }
+  function setupLevel(){
+    level=1; ghostBoost=0;
+    fillBoard();
 
     player = mkEntity(PLAYER_SPAWN,0.74);
     player.dx=-1; player.dy=0; player.want={x:-1,y:0}; player.mouth=0;
@@ -587,7 +592,21 @@
     modeTimer=0; chaseMode=false;      // empiezan dispersándose (más fácil al inicio)
     frame=0; deathTimer=0; winTimer=0; readyTimer=95;
   }
-  let rocksTotal=0, rocksLeft=0;
+  // Al despejar el tablero: se rellena y sigue la MISMA vida, con fantasmas un poco más rápidos
+  function nextRound(){
+    level++;
+    ghostBoost = Math.min(0.16, ghostBoost + 0.03);
+    fillBoard();
+    player.x=cx(PLAYER_SPAWN.c); player.y=cy(PLAYER_SPAWN.r);
+    player.dx=-1; player.dy=0; player.want={x:-1,y:0}; player.moveAcc=0;
+    ghosts.forEach((g,i)=>{
+      g.x=cx(GHOST_SPAWN.c); g.y=cy(GHOST_SPAWN.r);
+      g.dx=0; g.dy=-1; g.frightened=false; g.eaten=false; g.release=50+i*35; g.moveAcc=0;
+    });
+    diamonds=[]; diamondTimer=120; frightTimer=0; ghostChain=0;
+    chaseMode=false; modeTimer=0; readyTimer=80;
+    state="play";
+  }
 
   // -------- Movimiento del jugador --------
   function updatePlayer(){
@@ -660,7 +679,7 @@
   function updateGhost(g){
     if(g.release>0){ g.release--; return; }
     // velocidad efectiva (fracción de píxel por frame)
-    let spd = g.baseSpd;
+    let spd = Math.min(0.66, g.baseSpd + ghostBoost);   // suben por ronda, sin superar al jugador
     if(g.frightened && !g.eaten) spd = 0.24;   // muy lento cuando huye: se puede atrapar
     if(g.eaten) spd = 0.9;                      // regreso rápido a la base
 
@@ -759,7 +778,7 @@
     frightTimer=0; diamonds=[]; readyTimer=95; chaseMode=false; modeTimer=0;
     state="play";
   }
-  function winLevel(){ if(state==="play"){ state="won"; winTimer=140; sfx.win(); } }
+  function winLevel(){ if(state==="play"){ state="won"; winTimer=120; score+=200; sfx.win(); } }
 
   function endAttempt(){ showResults(); }
 
@@ -1078,7 +1097,7 @@
     }
     if(state==="play" && readyTimer>0 && !paused) drawCenterMsg("¡LISTO!","#F59D12");
     if(paused && state==="play") drawCenterMsg("PAUSA","#F59D12");
-    if(state==="won") drawCenterMsg("¡GALERÍA DESPEJADA!","#7bd88f");
+    if(state==="won") drawCenterMsg("¡RONDA "+level+" DESPEJADA!  +200","#7bd88f");
     if(state==="dying" && deathTimer<40) drawCenterMsg("¡CUIDADO!","#d94a3d");
   }
 
@@ -1107,7 +1126,7 @@
       }
     } else if(state==="won"){
       frame++; winTimer--;
-      if(winTimer<=0) endAttempt();
+      if(winTimer<=0) nextRound();
     }
     render();
     requestAnimationFrame(tick);
