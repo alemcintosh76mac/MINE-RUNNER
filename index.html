@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Mine Runner · ALXAR</title>
+<title>Pacman Minero · ALXAR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -126,6 +126,18 @@
   }
   .title .sub{display:block; color:var(--gray); font-weight:600; font-size:12px; letter-spacing:3px; margin-top:5px; text-shadow:none}
   .blurb{max-width:410px; font-size:15px; color:var(--gray); line-height:1.3}
+  .how{font-family:'Rajdhani',system-ui,sans-serif; font-weight:700; font-size:13px;
+    letter-spacing:2px; color:var(--amber); text-transform:uppercase; margin-top:2px}
+  .arrowkeys{display:flex; flex-direction:column; align-items:center; gap:5px; margin:1px 0 2px}
+  .arrowkeys .krow{display:flex; gap:5px; justify-content:center}
+  .arrowkeys .kc{
+    width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+    font-size:17px; color:var(--amber); background:#141014;
+    border:2px solid var(--amber); border-radius:7px;
+    box-shadow:0 3px 0 #7a4e08, 0 0 10px rgba(245,157,18,.25);
+  }
+  .arrowkeys .kc:first-child{animation:keyhint 1.6s ease-in-out infinite}
+  @keyframes keyhint{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
   .rules{
     width:100%; max-width:400px; text-align:left;
     display:flex; flex-direction:column; gap:6px;
@@ -249,7 +261,7 @@
     <div class="brand">
       <h1>ALXAR</h1>
     </div>
-    <span class="tag">MINE&nbsp;RUNNER</span>
+    <span class="tag">PACMAN&nbsp;MINERO</span>
   </header>
 
   <div id="hud">
@@ -264,7 +276,7 @@
     </div>
     <div class="right">
       <span class="lab">INTENTO</span>
-      <span class="val" id="attempt">1 / 3</span>
+      <span class="val" id="attempt">1 / 5</span>
     </div>
   </div>
 
@@ -276,29 +288,34 @@
     <!-- PANTALLA DE INICIO -->
     <div class="screen" id="startScreen">
       <div class="wordmark">ALXAR</div>
-      <div class="title">MINE&nbsp;RUNNER<span class="sub">EXTRACCIÓN SUBTERRÁNEA</span></div>
-      <p class="blurb">Eres un minero atrapado en las galerías de cobre. Recolecta toda la roca antes de que los peligros de la mina te alcancen.</p>
+      <div class="title">PACMAN&nbsp;MINERO<span class="sub">EDICIÓN ALXAR</span></div>
+      <p class="blurb">Eres un minero en las galerías de ALXAR. Recoge todos los cristales y esquiva a los fantasmas de la mina.</p>
 
+      <div class="how">CÓMO JUGAR — muévete con las flechas de tu computador</div>
+      <div class="arrowkeys" aria-hidden="true">
+        <div class="krow"><span class="kc">▲</span></div>
+        <div class="krow"><span class="kc">◀</span><span class="kc">▼</span><span class="kc">▶</span></div>
+      </div>
       <div class="rules">
         <div class="row">
-          <svg class="glyph" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.5" fill="#e08a2c"/></svg>
-          <span><b>Roca de cobre</b> — recoge todas para ganar. +10</span>
+          <svg class="glyph" viewBox="0 0 20 20"><path d="M10 3 L15 8.5 L10 17 L5 8.5 Z" fill="#dff1ff" stroke="#9fd6ff" stroke-width="1"/></svg>
+          <span><b>Cristal</b> — recoge todos para ganar. +10</span>
         </div>
         <div class="row">
-          <svg class="glyph" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6.5" fill="#ffcf3f"/><circle cx="10" cy="10" r="6.5" fill="none" stroke="#fff5cc" stroke-width="1"/></svg>
-          <span><b>Pepita de oro</b> — activa Extracción Máxima: neutraliza peligros. +50</span>
+          <svg class="glyph" viewBox="0 0 20 20"><path d="M10 2 L17 8.5 L10 18 L3 8.5 Z" fill="#ffd23a" stroke="#fff2b0" stroke-width="1"/></svg>
+          <span><b>Gema de poder</b> — vuelve comibles a los fantasmas. +50</span>
         </div>
         <div class="row">
-          <svg class="glyph" viewBox="0 0 20 20"><path d="M10 3 L16 8 L10 17 L4 8 Z" fill="#57c7e8"/></svg>
-          <span><b>Diamante</b> — aparece a ratos. Puntos extra.</span>
+          <svg class="glyph" viewBox="0 0 20 20"><path d="M10 3 L16 8 L10 17 L4 8 Z" fill="#57e0a0"/></svg>
+          <span><b>Gemas raras</b> — aparecen por todo el mapa. ¡Muchos puntos!</span>
         </div>
         <div class="row">
-          <svg class="glyph" viewBox="0 0 20 20"><path d="M3 15 L5 7 L10 4 L16 8 L17 14 L12 17 L6 17 Z" fill="#AAA095" stroke="#6f675d" stroke-width="1"/></svg>
-          <span><b>Peligros:</b> Roca Viviente, Robot de Perforación, Carro Explosivo y Nube de Gas. Esquívalos.</span>
+          <svg class="glyph" viewBox="0 0 20 20"><path d="M4 16 v-6 a6 6 0 0 1 12 0 v6 l-2-1.6 -2 1.6 -2-1.6 -2 1.6 -2-1.6z" fill="#EA652F"/></svg>
+          <span><b>Fantasmas</b> — evítalos. Con una gema de poder te los puedes comer.</span>
         </div>
       </div>
 
-      <p class="attempts">Tienes <b>3 intentos</b> para lograr tu mejor puntaje</p>
+      <p class="attempts">Tienes <b>5 intentos</b> · queda tu mejor puntaje</p>
 
       <div class="namefield">
         <label for="playerName">Identifícate para jugar</label>
@@ -307,24 +324,13 @@
       <button class="btn" id="startBtn" disabled>EMPEZAR ▸</button>
     </div>
 
-    <!-- PANTALLA FIN DE INTENTO -->
-    <div class="screen hidden" id="overScreen">
-      <div class="verdict" id="verdict">FIN DEL INTENTO</div>
-      <div class="scoreline">Puntaje de este intento</div>
+    <!-- PANTALLA DE RESULTADOS (después de cada partida) -->
+    <div class="screen hidden" id="finalScreen">
+      <div class="verdict" id="verdict">FIN DE LA PARTIDA</div>
+      <div class="scoreline">Puntaje de esta partida</div>
       <div class="bigscore" id="finalScore">0</div>
       <div class="newbest hidden" id="newBest">¡NUEVO MEJOR PUNTAJE!</div>
-      <div class="scoreline">Mejor puntaje: <b id="bestOver">0</b></div>
-      <p class="attempts" id="attemptsLeft">Te quedan <b>2</b> intentos</p>
-      <button class="btn" id="retryBtn">SIGUIENTE INTENTO ▸</button>
-    </div>
-
-    <!-- PANTALLA FINAL (3 intentos usados) -->
-    <div class="screen hidden" id="finalScreen">
-      <div class="wordmark">ALXAR</div>
-      <div class="verdict win">OPERACIÓN COMPLETADA</div>
-      <p class="scoreline">Usaste tus 3 intentos. Tu mejor extracción fue:</p>
-      <div class="bigscore" id="grandBest">0</div>
-      <p class="blurb" id="rank">Buen trabajo, minero.</p>
+      <div class="scoreline">Tu mejor puntaje: <b id="bestOver">0</b></div>
 
       <div class="ranking-wrap">
         <div class="rk-title">MEJORES PUNTAJES</div>
@@ -332,15 +338,13 @@
         <p class="rk-note hidden" id="rankNote"></p>
       </div>
 
-      <button class="btn" id="sendBtn">ENVIAR MI MEJOR SCORE ▸</button>
+      <button class="btn" id="retryBtn">JUGAR DE NUEVO ▸</button>
+
       <div class="sendbox hidden" id="sendBox">
-        <p class="sent" id="sendHint">Si no se abrió tu correo, usa una de estas opciones:</p>
-        <div class="sendrow">
-          <button class="btn ghost" id="gmailBtn">Abrir en Gmail</button>
-          <button class="btn ghost" id="copyBtn">Copiar mensaje</button>
-        </div>
-        <p class="addr">Para: <b>alejandra@mcintosh.cl</b></p>
-        <p class="sent hidden" id="copyOk">¡Mensaje copiado! Pégalo en tu correo y envíalo.</p>
+        <p class="sent" id="sendHint">¡Terminaste tus 5 intentos! Ahora envía tu mejor score:</p>
+        <button class="btn" id="copyBtn">📋 Copiar mi score</button>
+        <p class="addr">Pega tu score en un correo y envíalo a <b>joan.navarro@alxar.cl</b></p>
+        <p class="sent hidden" id="copyOk">¡Score copiado! Pégalo en un correo y envíalo a Joan.</p>
       </div>
     </div>
   </div>
@@ -350,7 +354,7 @@
 
 <script>
 /* ============================================================
-   MINE RUNNER — arcade estilo Pac-Man para ALXAR
+   PACMAN MINERO — arcade estilo Pac-Man para ALXAR
    Un solo nivel pulido · 3 vidas por intento · 3 intentos totales
    ============================================================ */
 (function(){
@@ -455,10 +459,10 @@
   const nuggetKey = new Set(nuggetCells.map(n=>n.r+"_"+n.c));
 
   // -------- Estado del juego --------
-  const MAX_ATTEMPTS = 3;
-  const START_LIVES  = 3;
+  const START_LIVES  = 1;   // cada partida es de una vida
+  const MAX_ATTEMPTS = 5;   // 5 intentos; queda el mejor score
   let bestScore = 0;
-  let attempt   = 1;
+  let gamesPlayed = 1;      // intento actual (1..MAX_ATTEMPTS)
   let playerName = "";
   let leaderboard = [];
 
@@ -473,7 +477,7 @@
 
   let state = "start";          // start | play | dying | won | over | final
   let score, lives, rocks, nuggetsLeft, frightTimer, ghostChain;
-  let player, ghosts, diamond, diamondTimer, modeTimer, chaseMode;
+  let player, ghosts, diamonds, diamondTimer, modeTimer, chaseMode;
   let frame = 0, deathTimer = 0, winTimer = 0, paused=false, readyTimer=0;
 
   // -------- Sonido (WebAudio, sin archivos) --------
@@ -533,10 +537,10 @@
   }
   // spd = fracción de píxeles/frame (1 = rápido, 0.3 = lento). El jugador va a 0.58.
   const GHOST_TYPES = [
-    { name:"Roca Viviente", color:"#AAA095", spd:0.40, kind:"chase",  corner:{c:COLS-2,r:1} },
-    { name:"Robot",         color:"#F59D12", spd:0.38, kind:"ambush", corner:{c:1,r:1} },
-    { name:"Carro",         color:"#d94a3d", spd:0.46, kind:"fast",   corner:{c:COLS-2,r:ROWS-2} },
-    { name:"Gas",           color:"#7bd88f", spd:0.30, kind:"slow",   corner:{c:1,r:ROWS-2} },
+    { name:"Naranjo", color:"#EA652F", spd:0.40, kind:"chase",  corner:{c:COLS-2,r:1} },
+    { name:"Gris",    color:"#AAA095", spd:0.38, kind:"ambush", corner:{c:1,r:1} },
+    { name:"Azul",    color:"#6d8f99", spd:0.46, kind:"fast",   corner:{c:COLS-2,r:ROWS-2} },
+    { name:"Verde",   color:"#7a9b5a", spd:0.30, kind:"slow",   corner:{c:1,r:ROWS-2} },
   ];
 
   function atCenter(e){ return (e.x-TILE/2)%TILE===0 && (e.y-TILE/2)%TILE===0; }
@@ -579,7 +583,7 @@
       return g;
     });
     frightTimer=0; ghostChain=0;
-    diamond=null; diamondTimer=380;
+    diamonds=[]; diamondTimer=140;
     modeTimer=0; chaseMode=false;      // empiezan dispersándose (más fácil al inicio)
     frame=0; deathTimer=0; winTimer=0; readyTimer=95;
   }
@@ -615,11 +619,14 @@
           break;
         }
       }
-      // diamante
-      if(diamond && diamond.c===t.c && diamond.r===t.r){
-        score+=diamond.value; sfx.diamond();
-        floatText(diamond.c,diamond.r,"+"+diamond.value,"#57c7e8");
-        diamond=null; diamondTimer=520;
+      // diamantes (gemas raras): puede haber varios a la vez
+      for(let i=diamonds.length-1;i>=0;i--){
+        const dm=diamonds[i];
+        if(dm.c===t.c && dm.r===t.r){
+          score+=dm.value; sfx.diamond();
+          floatText(dm.c,dm.r,"+"+dm.value,dm.color);
+          diamonds.splice(i,1);
+        }
       }
     }
     if(rocksLeft<=0){ winLevel(); }
@@ -702,25 +709,37 @@
   const floats=[];
   function floatText(c,r,txt,color){ floats.push({x:cx(c),y:cy(r),txt,color,life:50}); }
 
-  // -------- Diamante --------
+  // -------- Gemas raras (diamantes) --------
   const DIAMONDS=[
     {value:300,color:"#57c7e8",name:"diamante"},
     {value:500,color:"#57e88f",name:"esmeralda"},
     {value:800,color:"#e85770",name:"rubí"},
     {value:1200,color:"#c9a0ff",name:"geoda"}
   ];
-  function updateDiamond(){
-    if(diamond){ diamond.life--; if(diamond.life<=0){ diamond=null; diamondTimer=400; } return; }
+  const MAX_DIAMONDS = 4;   // cuántas gemas raras pueden estar a la vez en el mapa
+  function spawnDiamond(){
+    const free=[];
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(reachable[r][c] && !nuggetKey.has(r+"_"+c) &&
+         !(c===tileOf(player).c && r===tileOf(player).r) &&
+         !diamonds.some(d=>d.c===c && d.r===r)){
+        free.push({c,r});
+      }
+    }
+    if(!free.length) return;
+    const cell=free[(Math.random()*free.length)|0];
+    const d=DIAMONDS[(Math.random()*DIAMONDS.length)|0];
+    diamonds.push({...cell, value:d.value, color:d.color, life:9*60 + (Math.random()*4*60|0), rot:Math.random()*6});
+  }
+  function updateDiamonds(){
+    // envejecer y quitar las que expiran
+    for(let i=diamonds.length-1;i>=0;i--){
+      if(--diamonds[i].life<=0) diamonds.splice(i,1);
+    }
     diamondTimer--;
     if(diamondTimer<=0){
-      // celda alcanzable libre al azar
-      const free=[];
-      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-        if(reachable[r][c] && !nuggetKey.has(r+"_"+c)) free.push({c,r});
-      }
-      const cell=free[(Math.random()*free.length)|0];
-      const d=DIAMONDS[(Math.random()*DIAMONDS.length)|0];
-      diamond={...cell, value:d.value, color:d.color, life:9*60, rot:0};
+      if(diamonds.length<MAX_DIAMONDS) spawnDiamond();
+      diamondTimer = 130 + (Math.random()*110|0);   // aparecen seguido
     }
   }
 
@@ -737,43 +756,25 @@
       g.x=cx(GHOST_SPAWN.c); g.y=cy(GHOST_SPAWN.r);
       g.dx=0; g.dy=-1; g.frightened=false; g.eaten=false; g.release=90 + i*80; g.moveAcc=0;
     });
-    frightTimer=0; diamond=null; readyTimer=95; chaseMode=false; modeTimer=0;
+    frightTimer=0; diamonds=[]; readyTimer=95; chaseMode=false; modeTimer=0;
     state="play";
   }
   function winLevel(){ if(state==="play"){ state="won"; winTimer=140; sfx.win(); } }
 
-  function endAttempt(){
-    if(score>bestScore){ bestScore=score; showNewBest=true; } else showNewBest=false;
-    if(attempt>=MAX_ATTEMPTS){ showFinal(); }
-    else { showOver(); }
-  }
-  let showNewBest=false;
+  function endAttempt(){ showResults(); }
 
   // -------- Pantallas / DOM --------
   const $=id=>document.getElementById(id);
   function updateHUD(){
     $("score").textContent=score??0;
     $("best").textContent=bestScore;
-    $("attempt").textContent=attempt+" / "+MAX_ATTEMPTS;
+    $("attempt").textContent=gamesPlayed+" / "+MAX_ATTEMPTS;
     const lv=$("lives"); lv.innerHTML="";
     for(let i=0;i<(lives??0);i++){ const el=document.createElement("i"); lv.appendChild(el); }
   }
   function showScreen(id){
-    ["startScreen","overScreen","finalScreen"].forEach(s=>$(s).classList.add("hidden"));
+    ["startScreen","finalScreen"].forEach(s=>$(s).classList.add("hidden"));
     if(id) $(id).classList.remove("hidden");
-  }
-  function showOver(){
-    state="over";
-    $("verdict").textContent = rocksLeft<=0 ? "¡GALERÍA DESPEJADA!" : "TE ALCANZÓ LA MINA";
-    $("verdict").className = "verdict " + (rocksLeft<=0?"win":"lose");
-    $("finalScore").textContent=score;
-    $("bestOver").textContent=bestScore;
-    $("newBest").classList.toggle("hidden", !showNewBest);
-    const left=MAX_ATTEMPTS-attempt;
-    $("attemptsLeft").innerHTML = left===1
-      ? "Te queda <b>1</b> intento" : "Te quedan <b>"+left+"</b> intentos";
-    $("retryBtn").textContent = "SIGUIENTE INTENTO ▸";
-    showScreen("overScreen"); updateHUD();
   }
   // -------- Ranking (guardado local en el dispositivo) --------
   const LB_KEY = "mineRunnerAlxarRanking";
@@ -810,14 +811,20 @@
   function renderRanking(list, mine){
     const el = $("ranking");
     el.innerHTML = "";
-    const arr = (list||[]).filter(e=>e && typeof e.score==="number")
-                          .sort((a,b)=> b.score - a.score).slice(0,7);
+    // una fila por persona: su mejor puntaje
+    const bestByName = {};
+    (list||[]).forEach(e=>{
+      if(!e || typeof e.score!=="number") return;
+      const k = (e.name||"?");
+      if(!bestByName[k] || e.score>bestByName[k].score) bestByName[k]=e;
+    });
+    const arr = Object.values(bestByName).sort((a,b)=> b.score - a.score).slice(0,7);
     if(arr.length===0){
       el.innerHTML = '<div class="rk-empty">Aún no hay puntajes registrados.</div>';
       return;
     }
     arr.forEach((e,i)=>{
-      const isMe = mine && e.ts===mine.ts && e.name===mine.name;
+      const isMe = mine && e.name===mine.name;
       const row = document.createElement("div");
       row.className = "rk-row" + (i===0?" top":"") + (isMe?" me":"");
       row.innerHTML =
@@ -828,32 +835,44 @@
     });
   }
 
-  async function showFinal(){
-    state="final";
-    $("grandBest").textContent=bestScore;
-    let rank="Sigue practicando, minero.";
-    if(bestScore>=3000) rank="¡Extracción legendaria! Eres jefe de faena.";
-    else if(bestScore>=1500) rank="Gran faena. La mina es tuya.";
-    else if(bestScore>=600) rank="Buen trabajo bajo tierra.";
-    $("rank").textContent=rank;
-    $("sendBox").classList.add("hidden");
+  async function showResults(){
+    state="over";
+    const won = rocksLeft<=0;
+    $("verdict").textContent = won ? "¡GANASTE!" : "FIN DE LA PARTIDA";
+    $("verdict").className = "verdict " + (won?"win":"lose");
+    $("finalScore").textContent = score;
+    const isBest = score>bestScore;
+    if(isBest) bestScore=score;
+    $("bestOver").textContent = bestScore;
+    $("newBest").classList.toggle("hidden", !isBest);
     $("copyOk").classList.add("hidden");
     $("rankNote").classList.add("hidden");
+    // último intento: se oculta "jugar de nuevo" y aparece la instrucción de enviar
+    const last = gamesPlayed >= MAX_ATTEMPTS;
+    $("retryBtn").classList.toggle("hidden", last);
+    $("sendBox").classList.toggle("hidden", !last);
+    if(last){
+      $("verdict").textContent = "¡FIN DE TUS 5 INTENTOS!";
+      $("verdict").className = "verdict win";
+    }
     $("ranking").innerHTML = '<div class="rk-empty">Cargando ranking…</div>';
     showScreen("finalScreen"); updateHUD();
 
+    // registrar en el ranking solo cuando el jugador logra un nuevo mejor puntaje
     const mine = { name:(playerName||"Anónimo"), score:bestScore, ts:Date.now() };
     let list = [];
     if(cloudOn()){
       try{
-        await cloudSubmit(mine);
+        if(isBest) await cloudSubmit(mine);
         list = await cloudFetch();
       }catch(err){
-        leaderboard.push(mine); saveLB(); list = leaderboard.slice();
+        if(isBest){ leaderboard.push(mine); saveLB(); }
+        list = leaderboard.slice();
         showRankNote("No se pudo conectar al ranking en línea; se muestra el ranking de este equipo.");
       }
     } else {
-      leaderboard.push(mine); saveLB(); list = leaderboard.slice();
+      if(isBest){ leaderboard.push(mine); saveLB(); }
+      list = leaderboard.slice();
     }
     renderRanking(list, mine);
   }
@@ -874,45 +893,56 @@
       ctx.fillRect(x+5,y+5,TILE-10,3);
     }
   }
+  // Gema/cristal brillante reutilizable (corte tipo brillante)
+  function drawGem(x,y,size,color,glow){
+    ctx.save(); ctx.translate(x,y);
+    if(glow){ ctx.shadowColor=color; ctx.shadowBlur=glow; }
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    ctx.moveTo(0,-size);
+    ctx.lineTo(size*0.72,-size*0.15);
+    ctx.lineTo(size*0.5,size);
+    ctx.lineTo(-size*0.5,size);
+    ctx.lineTo(-size*0.72,-size*0.15);
+    ctx.closePath(); ctx.fill(); ctx.shadowBlur=0;
+    // facetas
+    ctx.strokeStyle="rgba(255,255,255,.55)"; ctx.lineWidth=Math.max(0.6,size*0.12);
+    ctx.beginPath();
+    ctx.moveTo(-size*0.72,-size*0.15); ctx.lineTo(size*0.72,-size*0.15);
+    ctx.moveTo(0,-size); ctx.lineTo(0,size);
+    ctx.stroke();
+    // destello
+    ctx.fillStyle="rgba(255,255,255,.9)";
+    ctx.beginPath(); ctx.arc(-size*0.22,-size*0.35,size*0.16,0,7); ctx.fill();
+    ctx.restore();
+  }
   function drawRocks(){
-    ctx.save();
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!rocks[r][c]) continue;
-      ctx.fillStyle="#e8933a";
-      ctx.beginPath(); ctx.arc(cx(c),cy(r),4.2,0,7); ctx.fill();
-      ctx.fillStyle="rgba(255,214,150,.8)";
-      ctx.beginPath(); ctx.arc(cx(c)-1.2,cy(r)-1.2,1.6,0,7); ctx.fill();
+      drawGem(cx(c),cy(r),4.4,"#dff1ff",0);           // cristal pequeño brillante
     }
-    ctx.restore();
   }
   function drawNuggets(){
     const pulse=0.5+0.5*Math.sin(frame*0.15);
     nuggetsLeft.forEach(n=>{
-      const x=cx(n.c),y=cy(n.r), r=6.5+pulse*1.6;
-      ctx.save();
-      ctx.shadowColor="#ffcf3f"; ctx.shadowBlur=12+pulse*8;
-      ctx.fillStyle="#ffcf3f";
-      ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill();
-      ctx.fillStyle="#fff6cf";
-      ctx.beginPath(); ctx.arc(x-2,y-2,2,0,7); ctx.fill();
-      ctx.restore();
+      drawGem(cx(n.c),cy(n.r), 8+pulse*2, "#ffd23a", 12+pulse*10);  // gema de poder dorada
     });
   }
-  function drawDiamond(){
-    if(!diamond) return;
-    diamond.rot+=0.05;
-    const x=cx(diamond.c), y=cy(diamond.r);
-    const blink = diamond.life<120 && (frame%16<8);
-    if(blink) return;
-    ctx.save(); ctx.translate(x,y); ctx.rotate(Math.sin(diamond.rot)*0.25);
-    ctx.shadowColor=diamond.color; ctx.shadowBlur=14;
-    ctx.fillStyle=diamond.color;
-    ctx.beginPath();
-    ctx.moveTo(0,-9); ctx.lineTo(7,-1); ctx.lineTo(0,10); ctx.lineTo(-7,-1); ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle="rgba(255,255,255,.8)"; ctx.lineWidth=1; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-7,-1); ctx.lineTo(7,-1); ctx.moveTo(0,-9); ctx.lineTo(0,10); ctx.stroke();
-    ctx.restore();
+  function drawDiamonds(){
+    diamonds.forEach(dm=>{
+      dm.rot+=0.05;
+      const x=cx(dm.c), y=cy(dm.r);
+      if(dm.life<120 && (frame%16<8)) return;   // parpadea antes de irse
+      ctx.save(); ctx.translate(x,y); ctx.rotate(Math.sin(dm.rot)*0.25);
+      ctx.shadowColor=dm.color; ctx.shadowBlur=14;
+      ctx.fillStyle=dm.color;
+      ctx.beginPath();
+      ctx.moveTo(0,-9); ctx.lineTo(7,-1); ctx.lineTo(0,10); ctx.lineTo(-7,-1); ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle="rgba(255,255,255,.8)"; ctx.lineWidth=1; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-7,-1); ctx.lineTo(7,-1); ctx.moveTo(0,-9); ctx.lineTo(0,10); ctx.stroke();
+      ctx.restore();
+    });
   }
   function drawPlayer(){
     const p=player;
@@ -947,97 +977,62 @@
     ctx.beginPath(); ctx.arc(0,-9,2.4,0,7); ctx.fill();
     ctx.restore();
   }
-  // ---- Peligros mineros (cada tipo se dibuja distinto) ----
-  function drawBoulder(g){                     // Roca Viviente
-    ctx.fillStyle="#AAA095"; ctx.strokeStyle="#6f675d"; ctx.lineWidth=1.5;
+  // ---- Fantasmas clásicos estilo Pac-Man, en colores ALXAR ----
+  function ghostBody(col, footPhase){
+    ctx.fillStyle=col;
     ctx.beginPath();
-    [[-10,3],[-7,-7],[0,-10],[8,-6],[10,3],[5,10],[-5,10]].forEach((p,i)=> i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.strokeStyle="rgba(90,84,74,.9)"; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(-2,-8); ctx.lineTo(0,-2); ctx.lineTo(-4,3); ctx.stroke();
-    ctx.fillStyle="#F59D12"; ctx.shadowColor="#F59D12"; ctx.shadowBlur=6;
-    ctx.beginPath(); ctx.arc(-3,0,2.1,0,7); ctx.arc(4,-1,2.1,0,7); ctx.fill(); ctx.shadowBlur=0;
-    ctx.fillStyle="#2a1e08";
-    ctx.beginPath(); ctx.arc(-3,0,0.9,0,7); ctx.arc(4,-1,0.9,0,7); ctx.fill();
+    ctx.arc(0,-1,9,Math.PI,0,false);        // cúpula superior
+    ctx.lineTo(9,7);
+    const bottomY=7, upY=4, steps=4, span=18;   // falda ondulada
+    for(let i=0;i<steps;i++){
+      const x1 = 9 - (i+0.5)*(span/steps);
+      const x2 = 9 - (i+1)*(span/steps);
+      if(footPhase){ ctx.lineTo(x1, upY);     ctx.lineTo(x2, bottomY); }
+      else         { ctx.lineTo(x1, bottomY); ctx.lineTo(x2, upY); }
+    }
+    ctx.lineTo(-9,-1);
+    ctx.closePath(); ctx.fill();
   }
-  function drawDrillRobot(g,dir){              // Robot de Perforación
-    ctx.fillStyle="#2a2622"; ctx.fillRect(-10,6,20,4);          // orugas
-    ctx.fillStyle="#4a443c"; for(let i=-9;i<9;i+=3) ctx.fillRect(i,6,1.6,4);
-    ctx.fillStyle="#c9c1b6"; roundRect(-8,-8,16,14,3); ctx.fill();  // cuerpo
-    ctx.fillStyle="#F59D12"; roundRect(-6,-6,12,4.5,2); ctx.fill(); // panel ámbar
-    ctx.fillStyle="#141414"; ctx.fillRect(-5,0,10,3.5);            // visor
-    ctx.fillStyle="#57c7e8";
-    ctx.beginPath(); ctx.arc(-2,1.7,1.3,0,7); ctx.arc(2,1.7,1.3,0,7); ctx.fill();
-    ctx.strokeStyle="#8a8078"; ctx.lineWidth=1;                    // antena
-    ctx.beginPath(); ctx.moveTo(0,-8); ctx.lineTo(0,-12); ctx.stroke();
-    ctx.fillStyle="#d94a3d"; ctx.beginPath(); ctx.arc(0,-12.5,1.5,0,7); ctx.fill();
-    ctx.save(); ctx.rotate(dir);                                   // taladro apunta al avance
-    ctx.fillStyle="#8a8078";
-    ctx.beginPath(); ctx.moveTo(8,-4); ctx.lineTo(16,0); ctx.lineTo(8,4); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle="#5a544c"; ctx.lineWidth=1;
-    const off=(frame*0.5)%2;
-    for(let i=0;i<3;i++){ const dx=9+i*2.2; ctx.beginPath(); ctx.moveTo(dx,-3+((i+off)%2)); ctx.lineTo(dx,3-((i+off)%2)); ctx.stroke(); }
-    ctx.restore();
-  }
-  function drawCart(g){                         // Carro Explosivo
-    ctx.fillStyle="#2a2622";
-    ctx.beginPath(); ctx.arc(-6,9,3,0,7); ctx.arc(6,9,3,0,7); ctx.fill();   // ruedas
-    ctx.fillStyle="#666"; ctx.beginPath(); ctx.arc(-6,9,1,0,7); ctx.arc(6,9,1,0,7); ctx.fill();
-    ctx.fillStyle="#7a4038";                                                 // batea
-    ctx.beginPath(); ctx.moveTo(-10,0); ctx.lineTo(10,0); ctx.lineTo(7,7); ctx.lineTo(-7,7); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle="#3a1f1b"; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.fillStyle="#9a5048"; ctx.fillRect(-10,-1.5,20,2.5);                   // borde
-    ctx.fillStyle="#d94a3d"; ctx.fillRect(-4,-8,8,7);                         // dinamita
-    ctx.fillStyle="#b03a30"; ctx.fillRect(-3.6,-8,2.4,7); ctx.fillRect(1.2,-8,2.4,7);
-    ctx.strokeStyle="#3a2a10"; ctx.lineWidth=1;                               // mecha
-    ctx.beginPath(); ctx.moveTo(0,-8); ctx.quadraticCurveTo(3,-12,1,-14); ctx.stroke();
-    const s=1+Math.sin(frame*0.5)*0.4;                                        // chispa
-    ctx.fillStyle="#ffcf3f"; ctx.shadowColor="#ff8c00"; ctx.shadowBlur=8;
-    ctx.beginPath(); ctx.arc(1,-14,2*s,0,7); ctx.fill(); ctx.shadowBlur=0;
-  }
-  function drawGas(g){                          // Nube de Gas
-    const w=Math.sin(frame*0.12)*1.5;
-    ctx.fillStyle="rgba(123,216,143,.55)"; ctx.shadowColor="#7bd88f"; ctx.shadowBlur=10;
-    [[-5,0,7],[4,-1,6.5],[0,4,6],[-2,-4,5],[6,3,4.5]].forEach(([bx,by,br],i)=>{
-      ctx.beginPath(); ctx.arc(bx+w*(i%2?1:-1),by,br,0,7); ctx.fill();
-    });
-    ctx.shadowBlur=0;
-    ctx.fillStyle="rgba(210,255,210,.7)";
-    ctx.beginPath(); ctx.arc(-3+w,-2,1.3,0,7); ctx.arc(4,3,1,0,7); ctx.fill();
-    ctx.fillStyle="rgba(28,60,28,.85)";
-    ctx.beginPath(); ctx.arc(-3,-1,1.4,0,7); ctx.arc(3,-1,1.4,0,7); ctx.fill();
-  }
-  function drawScared(flash){                   // estado seguro (tras pepita de oro)
-    const col = flash ? "#dfe6ff" : "#3a6fd8";
-    ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=8;
-    ctx.beginPath();
-    [[-9,3],[-6,-6],[1,-9],[8,-5],[9,4],[4,9],[-4,9]].forEach((p,i)=> i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
-    ctx.closePath(); ctx.fill(); ctx.shadowBlur=0;
+  function ghostEyes(dx,dy){
     ctx.fillStyle="#fff";
-    ctx.beginPath(); ctx.arc(-3,-1,1.7,0,7); ctx.arc(3,-1,1.7,0,7); ctx.fill();
-    ctx.strokeStyle=flash?"#d94a3d":"#bcd0ff"; ctx.lineWidth=1.2;
-    ctx.beginPath(); ctx.moveTo(-4,4);
-    for(let i=1;i<=4;i++){ ctx.lineTo(-4+i*2, 4+(i%2?-1.6:1.6)); }
+    ctx.beginPath();
+    ctx.ellipse(-3.2,-2,2.5,3.1,0,0,7);
+    ctx.ellipse(3.2,-2,2.5,3.1,0,0,7);
+    ctx.fill();
+    const px=Math.max(-1.3,Math.min(1.3,dx*1.3)), py=Math.max(-1.3,Math.min(1.3,dy*1.3));
+    ctx.fillStyle="#243447";
+    ctx.beginPath();
+    ctx.arc(-3.2+px,-2+py,1.35,0,7);
+    ctx.arc(3.2+px,-2+py,1.35,0,7);
+    ctx.fill();
+  }
+  function scaredFace(flash){
+    ctx.fillStyle = flash ? "#d94a3d" : "#fff";        // ojos
+    ctx.beginPath(); ctx.arc(-3.2,-2,1.5,0,7); ctx.arc(3.2,-2,1.5,0,7); ctx.fill();
+    ctx.strokeStyle = flash ? "#d94a3d" : "#fff"; ctx.lineWidth=1.3;  // boca zigzag
+    ctx.beginPath(); ctx.moveTo(-5,4);
+    for(let i=1;i<=5;i++){ ctx.lineTo(-5+i*2, 4+(i%2?-1.7:1.7)); }
     ctx.stroke();
   }
-  function drawRubble(){                         // escombros volviendo a la base
-    ctx.fillStyle="rgba(120,112,102,.6)";
-    [[-6,3],[-1,-2],[4,2],[6,-2]].forEach(([rx,ry])=>{ ctx.beginPath(); ctx.arc(rx,ry,2,0,7); ctx.fill(); });
-  }
-
   function drawGhosts(){
+    const footPhase = (frame % 20) < 10;      // anima la falda
     ghosts.forEach(g=>{
       if(g.release>0) return;
       ctx.save(); ctx.translate(g.x,g.y);
-      if(g.eaten){ drawRubble(); ctx.restore(); return; }
-      if(g.frightened){ drawScared(frightTimer<120 && frame%16<8); ctx.restore(); return; }
-      const dir=Math.atan2(g.dy,g.dx);
-      switch(g.type.kind){
-        case "chase":  drawBoulder(g); break;
-        case "ambush": drawDrillRobot(g,dir); break;
-        case "fast":   drawCart(g); break;
-        case "slow":   drawGas(g); break;
+      if(g.eaten){                            // comido: solo los ojos regresan a la base
+        ghostEyes(g.dx,g.dy);
+        ctx.restore(); return;
       }
+      const flash = g.frightened && frightTimer<120 && frame%16<8;
+      if(g.frightened){                        // asustado: azul clásico, parpadea al final
+        ghostBody(flash ? "#cfe0ff" : "#2b53d6", footPhase);
+        scaredFace(flash);
+        ctx.restore(); return;
+      }
+      ctx.shadowColor=g.color; ctx.shadowBlur=6;
+      ghostBody(g.color, footPhase);
+      ctx.shadowBlur=0;
+      ghostEyes(g.dx,g.dy);
       ctx.restore();
     });
   }
@@ -1073,13 +1068,13 @@
     drawWalls();
     drawRocks();
     drawNuggets();
-    drawDiamond();
+    drawDiamonds();
     drawGhosts();
     drawPlayer();
     drawFloats();
     if(frightTimer>0 && state==="play"){
       ctx.fillStyle="rgba(58,111,216,.9)"; ctx.font="600 15px 'Rajdhani',system-ui,sans-serif"; ctx.textAlign="left";
-      ctx.fillText("EXTRACCIÓN MÁXIMA "+Math.ceil(frightTimer/60)+"s", 8, canvas.height-8);
+      ctx.fillText("¡FANTASMAS COMIBLES! "+Math.ceil(frightTimer/60)+"s", 8, canvas.height-8);
     }
     if(state==="play" && readyTimer>0 && !paused) drawCenterMsg("¡LISTO!","#F59D12");
     if(paused && state==="play") drawCenterMsg("PAUSA","#F59D12");
@@ -1100,7 +1095,7 @@
         if(chaseMode && modeTimer>60*18){ chaseMode=false; modeTimer=0; ghosts.forEach(reverse); }
         else if(!chaseMode && modeTimer>60*7){ chaseMode=true; modeTimer=0; ghosts.forEach(reverse); }
         updatePlayer();
-        updateDiamond();
+        updateDiamonds();
         ghosts.forEach(updateGhost);
       }
     } else if(state==="dying"){
@@ -1135,7 +1130,7 @@
     if(k==="m") toggleSound();
     if(k===" "||k==="enter"){
       if(state==="start"){ e.preventDefault(); startGame(); }
-      else if(state==="over"){ nextAttempt(); }
+      else if(state==="over"){ if(gamesPlayed<MAX_ATTEMPTS){ e.preventDefault(); playAgain(); } }
     }
   },{passive:false});
 
@@ -1144,45 +1139,25 @@
     const nm = (($("playerName").value)||"").trim().slice(0,14);
     if(!nm){ $("playerName").focus(); return; }
     playerName = nm;
+    bestScore = 0; gamesPlayed = 1;
     ensureAudio(); startMusic(); sfx.start();
-    showScreen(null); attempt=1; newAttempt();
+    showScreen(null); newAttempt();
   }
-  function nextAttempt(){ attempt++; showScreen(null); newAttempt(); }
+  function playAgain(){ if(gamesPlayed>=MAX_ATTEMPTS) return; gamesPlayed++; showScreen(null); newAttempt(); }
   $("startBtn").addEventListener("click",startGame);
   $("playerName").addEventListener("input",()=>{
     $("startBtn").disabled = !$("playerName").value.trim();
   });
-  $("retryBtn").addEventListener("click",nextAttempt);
+  $("retryBtn").addEventListener("click",playAgain);
 
-  // Enviar el mejor puntaje por correo — con alternativas por si no hay app de correo
-  const SCORE_EMAIL = "alejandra@mcintosh.cl";
-  function emailParts(){
-    return {
-      to: SCORE_EMAIL,
-      subject: "Mi mejor score en Mine Runner (ALXAR)",
-      body: "¡Hola!\n\nMi nombre es " + (playerName||"Anónimo") +
-            " y mi mejor puntaje en Mine Runner de ALXAR fue " + bestScore +
-            " puntos (" + MAX_ATTEMPTS + " intentos jugados).\n\nEnviado desde el juego."
-    };
+  // Copiar el score para pegarlo en un correo a Joan
+  function scoreText(){
+    return "PACMAN MINERO (ALXAR)\n" +
+           "Jugador: " + (playerName||"Anónimo") + "\n" +
+           "Mi mejor score: " + bestScore + " puntos";
   }
-  $("sendBtn").addEventListener("click",()=>{
-    const p=emailParts();
-    // intenta abrir la app de correo predeterminada
-    window.location.href = "mailto:" + p.to +
-      "?subject=" + encodeURIComponent(p.subject) +
-      "&body=" + encodeURIComponent(p.body);
-    // muestra siempre las alternativas (Gmail / copiar) por si no se abrió
-    $("sendBox").classList.remove("hidden");
-  });
-  $("gmailBtn").addEventListener("click",()=>{
-    const p=emailParts();
-    const u = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(p.to) +
-      "&su=" + encodeURIComponent(p.subject) + "&body=" + encodeURIComponent(p.body);
-    window.open(u, "_blank", "noopener");
-  });
   $("copyBtn").addEventListener("click",async ()=>{
-    const p=emailParts();
-    const text = "Para: " + p.to + "\nAsunto: " + p.subject + "\n\n" + p.body;
+    const text = scoreText();
     try{
       await navigator.clipboard.writeText(text);
     }catch(e){
