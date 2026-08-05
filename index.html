@@ -796,7 +796,7 @@
     if(id) $(id).classList.remove("hidden");
   }
   // -------- Ranking (guardado local en el dispositivo) --------
-  const LB_KEY = "mineRunnerAlxarRanking";
+  const LB_KEY = "pacmanMineroAlxarRanking_v2";
   function loadLB(){
     try{ const s=localStorage.getItem(LB_KEY); leaderboard = s ? JSON.parse(s) : []; }
     catch(e){ /* sin almacenamiento: queda en memoria durante la sesión */ }
